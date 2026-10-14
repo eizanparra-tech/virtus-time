@@ -1,18 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { LogOut, User as UserIcon, ChevronDown } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { iniciales } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { signOutAction } from "@/app/(app)/actions";
 import type { Profile } from "@/types/database.types";
 
 export function UserMenu({ profile }: { profile: Profile }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -23,13 +21,6 @@ export function UserMenu({ profile }: { profile: Profile }) {
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
-
-  async function handleSignOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <div className="relative" ref={ref}>
@@ -54,7 +45,6 @@ export function UserMenu({ profile }: { profile: Profile }) {
             <p className="text-sm font-medium text-ink">
               {profile.nombre} {profile.apellidos}
             </p>
-            <p className="truncate text-xs text-ink-muted">{profile.email}</p>
             <Badge
               tone={profile.rol === "admin" ? "accent" : "neutral"}
               className="mt-1.5"
@@ -70,12 +60,14 @@ export function UserMenu({ profile }: { profile: Profile }) {
           >
             <UserIcon className="h-4 w-4" /> Mi perfil
           </Link>
-          <button
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left text-sm text-negative hover:bg-negative-soft"
-          >
-            <LogOut className="h-4 w-4" /> Cerrar sesión
-          </button>
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left text-sm text-negative hover:bg-negative-soft"
+            >
+              <LogOut className="h-4 w-4" /> Cambiar de perfil
+            </button>
+          </form>
         </div>
       )}
     </div>

@@ -1,10 +1,27 @@
 -- =============================================================================
 -- VIRTUS TIME — Migración inicial
--- Crea: tipos, tablas, índices, triggers y políticas de Row Level Security (RLS)
+-- Crea: tipos, tablas, índices y triggers.
 -- =============================================================================
 -- Cómo ejecutar esta migración:
 --   Opción A (recomendada): Supabase Dashboard > SQL Editor > pegar y ejecutar
 --   Opción B: Supabase CLI  ->  supabase db push
+-- =============================================================================
+--
+-- MODELO DE ACCESO (léelo antes de tocar nada):
+-- VIRTUS TIME usa "perfiles" en vez de cuentas con contraseña: cada socio
+-- aparece en una lista y entra tocando su nombre. No hay contraseñas que
+-- comprobar en la base de datos.
+--
+-- Por eso, TODO el acceso a estas tablas se hace desde el servidor de
+-- Next.js con la clave "service_role" (ver src/lib/supabase/db.ts), que
+-- se salta la seguridad por fila (RLS). El servidor es quien decide qué
+-- puede hacer cada persona, mirando la sesión guardada en una cookie
+-- firmada (ver src/lib/session.ts).
+--
+-- Dejamos RLS activado en todas las tablas pero SIN políticas: así, si
+-- alguna vez el navegador intentara hablar directamente con Supabase (con
+-- la clave pública), no conseguiría leer ni escribir nada. Es una red de
+-- seguridad adicional, no la protección principal.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -37,8 +54,8 @@ exception when duplicate_object then null; end $$;
 
 -- -----------------------------------------------------------------------------
 -- TABLA: app_settings
--- Fila única de configuración global. Se usa para saber si ya existe el primer
--- administrador (configuración inicial) y para guardar ajustes generales.
+-- Fila única de configuración global. Se usa para saber si ya existe el
+-- primer perfil (configuración inicial) y para guardar ajustes generales.
 -- -----------------------------------------------------------------------------
 create table if not exists public.app_settings (
   id boolean primary key default true,
@@ -56,13 +73,14 @@ on conflict (id) do nothing;
 
 -- -----------------------------------------------------------------------------
 -- TABLA: profiles
--- Un perfil por cada socio. El id coincide con auth.users.id.
+-- Un perfil por cada socio. NO está ligada a ningún sistema de login: es
+-- simplemente la lista de personas que aparece en la pantalla de entrada.
 -- -----------------------------------------------------------------------------
 create table if not exists public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
+  id uuid primary key default gen_random_uuid(),
   nombre text not null,
   apellidos text not null default '',
-  email text not null,
+  email text,
   avatar_url text,
   rol public.user_role not null default 'socio',
   activo boolean not null default true,
@@ -235,24 +253,6 @@ create table if not exists public.weekly_member_reports (
 create index if not exists idx_weekly_member_reports_report on public.weekly_member_reports (report_id);
 
 -- -----------------------------------------------------------------------------
--- FUNCIÓN AUXILIAR: es_admin()
--- Comprueba si el usuario autenticado actual es administrador.
--- Se usa dentro de las políticas RLS de abajo.
--- -----------------------------------------------------------------------------
-create or replace function public.es_admin()
-returns boolean
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select exists (
-    select 1 from public.profiles
-    where id = auth.uid() and rol = 'admin' and activo = true
-  );
-$$;
-
--- -----------------------------------------------------------------------------
 -- FUNCIÓN AUXILIAR: updated_at automático
 -- -----------------------------------------------------------------------------
 create or replace function public.set_updated_at()
@@ -281,37 +281,11 @@ drop trigger if exists trg_time_entries_updated_at on public.time_entries;
 create trigger trg_time_entries_updated_at before update on public.time_entries
   for each row execute function public.set_updated_at();
 
--- -----------------------------------------------------------------------------
--- TRIGGER: crear perfil automáticamente al registrarse en Supabase Auth
--- El rol por defecto es 'socio'. El primer administrador se asciende aparte,
--- desde la pantalla de configuración inicial (ver app/(auth)/setup).
--- -----------------------------------------------------------------------------
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  insert into public.profiles (id, nombre, apellidos, email)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data ->> 'nombre', split_part(new.email, '@', 1)),
-    coalesce(new.raw_user_meta_data ->> 'apellidos', ''),
-    new.email
-  )
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
-
-drop trigger if exists trg_handle_new_user on auth.users;
-create trigger trg_handle_new_user
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
 -- =============================================================================
--- ROW LEVEL SECURITY
+-- ROW LEVEL SECURITY — activada, sin políticas (ver nota al principio del
+-- archivo). El servidor de Next.js accede con la clave service_role, que
+-- no pasa por RLS, así que estas tablas quedan cerradas a cualquier otro
+-- acceso.
 -- =============================================================================
 
 alter table public.app_settings enable row level security;
@@ -324,150 +298,6 @@ alter table public.time_entry_history enable row level security;
 alter table public.weekly_reports enable row level security;
 alter table public.weekly_project_reports enable row level security;
 alter table public.weekly_member_reports enable row level security;
-
--- -------------------------------- app_settings --------------------------------
--- Lectura: cualquier persona (incluso anónima) necesita saber si el setup
--- inicial ya se completó, para decidir si mostrar /setup o /login.
-drop policy if exists app_settings_select on public.app_settings;
-create policy app_settings_select on public.app_settings
-  for select using (true);
-
--- Solo un administrador autenticado puede modificar la configuración general.
--- (La finalización del setup inicial se hace con la service role key, no aquí.)
-drop policy if exists app_settings_update_admin on public.app_settings;
-create policy app_settings_update_admin on public.app_settings
-  for update using (public.es_admin());
-
--- ---------------------------------- profiles -----------------------------------
--- Todos los socios autenticados pueden ver todos los perfiles (equipo, selección
--- de participantes en proyectos, estadísticas por socio, etc).
-drop policy if exists profiles_select_authenticated on public.profiles;
-create policy profiles_select_authenticated on public.profiles
-  for select to authenticated using (true);
-
--- Cada socio solo puede editar su propio perfil (nombre, apellidos, avatar).
--- No puede cambiarse el rol a sí mismo: eso se controla a nivel de aplicación
--- (la API solo expone esos campos) y además queda protegido abajo.
-drop policy if exists profiles_update_self on public.profiles;
-create policy profiles_update_self on public.profiles
-  for update to authenticated
-  using (id = auth.uid())
-  with check (id = auth.uid());
-
--- El administrador puede editar cualquier perfil (rol, estado activo/inactivo).
-drop policy if exists profiles_update_admin on public.profiles;
-create policy profiles_update_admin on public.profiles
-  for update to authenticated
-  using (public.es_admin());
-
--- -------------------------------- projects --------------------------------------
-drop policy if exists projects_select_authenticated on public.projects;
-create policy projects_select_authenticated on public.projects
-  for select to authenticated using (true);
-
-drop policy if exists projects_insert_admin on public.projects;
-create policy projects_insert_admin on public.projects
-  for insert to authenticated with check (public.es_admin());
-
-drop policy if exists projects_update_admin on public.projects;
-create policy projects_update_admin on public.projects
-  for update to authenticated using (public.es_admin());
-
-drop policy if exists projects_delete_admin on public.projects;
-create policy projects_delete_admin on public.projects
-  for delete to authenticated using (public.es_admin());
-
--- ----------------------------- project_members -----------------------------------
-drop policy if exists project_members_select_authenticated on public.project_members;
-create policy project_members_select_authenticated on public.project_members
-  for select to authenticated using (true);
-
-drop policy if exists project_members_write_admin on public.project_members;
-create policy project_members_write_admin on public.project_members
-  for all to authenticated
-  using (public.es_admin())
-  with check (public.es_admin());
-
--- ---------------------------------- tasks -----------------------------------------
-drop policy if exists tasks_select_authenticated on public.tasks;
-create policy tasks_select_authenticated on public.tasks
-  for select to authenticated using (true);
-
-drop policy if exists tasks_insert_admin on public.tasks;
-create policy tasks_insert_admin on public.tasks
-  for insert to authenticated with check (public.es_admin());
-
--- El administrador puede editar cualquier tarea; el responsable asignado
--- puede actualizar su propia tarea (por ejemplo, cambiar el estado).
-drop policy if exists tasks_update_admin_or_responsable on public.tasks;
-create policy tasks_update_admin_or_responsable on public.tasks
-  for update to authenticated
-  using (public.es_admin() or responsable_id = auth.uid());
-
-drop policy if exists tasks_delete_admin on public.tasks;
-create policy tasks_delete_admin on public.tasks
-  for delete to authenticated using (public.es_admin());
-
--- ------------------------------- time_entries -------------------------------------
--- Cada socio ve sus propios registros; el administrador ve todos (estadísticas
--- generales, informes, corrección de registros).
-drop policy if exists time_entries_select_own_or_admin on public.time_entries;
-create policy time_entries_select_own_or_admin on public.time_entries
-  for select to authenticated
-  using (user_id = auth.uid() or public.es_admin());
-
--- Un socio solo puede crear registros a su propio nombre.
-drop policy if exists time_entries_insert_own on public.time_entries;
-create policy time_entries_insert_own on public.time_entries
-  for insert to authenticated
-  with check (user_id = auth.uid());
-
--- Un socio edita sus propios registros; el administrador puede corregir
--- cualquier registro (quedará reflejado en time_entry_history).
-drop policy if exists time_entries_update_own_or_admin on public.time_entries;
-create policy time_entries_update_own_or_admin on public.time_entries
-  for update to authenticated
-  using (user_id = auth.uid() or public.es_admin());
-
-drop policy if exists time_entries_delete_own_or_admin on public.time_entries;
-create policy time_entries_delete_own_or_admin on public.time_entries
-  for delete to authenticated
-  using (user_id = auth.uid() or public.es_admin());
-
--- ---------------------------- time_entry_history -----------------------------------
--- Visible para el propio dueño del registro y para administradores.
-drop policy if exists time_entry_history_select on public.time_entry_history;
-create policy time_entry_history_select on public.time_entry_history
-  for select to authenticated
-  using (
-    public.es_admin()
-    or exists (
-      select 1 from public.time_entries te
-      where te.id = time_entry_id and te.user_id = auth.uid()
-    )
-  );
-
--- Las filas de historial se insertan desde funciones de servidor con la
--- service role key; no se permite inserción directa desde el cliente.
-drop policy if exists time_entry_history_insert_admin on public.time_entry_history;
-create policy time_entry_history_insert_admin on public.time_entry_history
-  for insert to authenticated with check (public.es_admin());
-
--- ------------------------------- weekly_reports -------------------------------------
--- Lectura para cualquier socio autenticado. La escritura la realiza
--- exclusivamente el proceso programado del servidor (service role key),
--- que no pasa por RLS, así que aquí solo abrimos lectura.
-drop policy if exists weekly_reports_select on public.weekly_reports;
-create policy weekly_reports_select on public.weekly_reports
-  for select to authenticated using (true);
-
-drop policy if exists weekly_project_reports_select on public.weekly_project_reports;
-create policy weekly_project_reports_select on public.weekly_project_reports
-  for select to authenticated using (true);
-
-drop policy if exists weekly_member_reports_select on public.weekly_member_reports;
-create policy weekly_member_reports_select on public.weekly_member_reports
-  for select to authenticated using (true);
 
 -- =============================================================================
 -- FIN DE LA MIGRACIÓN INICIAL

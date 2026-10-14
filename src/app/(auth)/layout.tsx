@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           backgroundSize: "28px 28px",
         }}
       />
-      <div className="relative w-full max-w-sm">
+      <div className="relative w-full max-w-md">
         <div className="mb-8 flex items-baseline justify-center gap-1.5">
           <span className="font-display text-3xl font-semibold tracking-tight text-ink-on-brand">
             Virtus

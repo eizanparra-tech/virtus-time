@@ -1,13 +1,13 @@
 import { Users } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createDbClient } from "@/lib/supabase/db";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { iniciales } from "@/lib/utils";
 
 export default async function EquipoPage() {
-  const supabase = await createClient();
-  const { data: socios } = await supabase
+  const db = createDbClient();
+  const { data: socios } = await db
     .from("profiles")
     .select("id, nombre, apellidos, email, rol, activo")
     .order("nombre");

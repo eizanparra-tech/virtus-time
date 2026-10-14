@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createDbClient } from "@/lib/supabase/db";
+import { requireProfile } from "@/lib/session";
 
 export interface UpdateProfileState {
   ok: boolean;
@@ -14,27 +15,19 @@ export async function updateProfileAction(
 ): Promise<UpdateProfileState> {
   const nombre = String(formData.get("nombre") ?? "").trim();
   const apellidos = String(formData.get("apellidos") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
 
   if (!nombre) {
     return { ok: false, error: "El nombre no puede estar vacío." };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const profile = await requireProfile();
+  const db = createDbClient();
 
-  if (!user) {
-    return { ok: false, error: "Tu sesión ha caducado. Vuelve a iniciar sesión." };
-  }
-
-  // RLS (profiles_update_self) solo permite a cada socio actualizar su
-  // propia fila, así que este update es seguro aunque se llame con la
-  // sesión normal del usuario.
-  const { error } = await supabase
+  const { error } = await db
     .from("profiles")
-    .update({ nombre, apellidos })
-    .eq("id", user.id);
+    .update({ nombre, apellidos, email: email || null })
+    .eq("id", profile.id);
 
   if (error) {
     return { ok: false, error: "No se ha podido guardar. Inténtalo de nuevo." };

@@ -37,8 +37,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       </div>
 
       <div>
-        <Label htmlFor="email">Correo electrónico</Label>
-        <Input id="email" value={profile.email} disabled />
+        <Label htmlFor="email">Correo electrónico (opcional)</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          defaultValue={profile.email ?? ""}
+          placeholder="No es obligatorio"
+        />
       </div>
 
       <div className="flex items-center gap-3 pt-1">

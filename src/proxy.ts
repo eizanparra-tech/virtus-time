@@ -1,21 +1,53 @@
-import type { NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { NextResponse, type NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
-// En Next.js 16 este archivo sustituye al antiguo "middleware.ts".
-// Se ejecuta en el servidor antes de cada petición y se encarga de mantener
-// viva la sesión de Supabase y de proteger las rutas privadas.
+// Rutas que cualquiera puede visitar sin haber elegido un perfil todavía.
+const PUBLIC_PATHS = ["/login", "/setup"];
+
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
+}
+
+async function hasValidSession(request: NextRequest): Promise<boolean> {
+  const token = request.cookies.get("vt_session")?.value;
+  if (!token) return false;
+
+  const secret = process.env.SESSION_SECRET;
+  if (!secret || secret.length < 16) return false;
+
+  try {
+    await jwtVerify(token, new TextEncoder().encode(secret));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Sustituye al antiguo "middleware.ts" (ver src/lib/session.ts para el
+// porqué: VIRTUS TIME no usa contraseñas, solo una cookie firmada). Aquí
+// solo comprobamos que la cookie existe y es válida; cargar el perfil
+// completo se hace dentro de cada página con requireProfile().
 export async function proxy(request: NextRequest) {
-  return updateSession(request);
+  const { pathname } = request.nextUrl;
+  const authenticated = await hasValidSession(request);
+
+  if (!authenticated && !isPublicPath(pathname)) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (authenticated && (pathname === "/login" || pathname === "/setup")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    /*
-     * Se ejecuta en todas las rutas EXCEPTO:
-     * - _next/static (archivos estáticos)
-     * - _next/image (optimización de imágenes)
-     * - favicon.ico, archivos de imagen
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

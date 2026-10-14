@@ -37,7 +37,7 @@ export interface Database {
           id: string;
           nombre: string;
           apellidos: string;
-          email: string;
+          email: string | null;
           avatar_url: string | null;
           rol: UserRole;
           activo: boolean;
@@ -45,9 +45,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["profiles"]["Row"]> & {
-          id: string;
           nombre: string;
-          email: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
       } & NoRelationships;
@@ -188,12 +186,7 @@ export interface Database {
       } & NoRelationships;
     };
     Views: Record<string, never>;
-    Functions: {
-      es_admin: {
-        Args: Record<string, never>;
-        Returns: boolean;
-      };
-    };
+    Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

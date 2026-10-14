@@ -6,7 +6,7 @@ import {
   FileBarChart,
   CalendarDays,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { requireProfile } from "@/lib/session";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -44,16 +44,7 @@ const ROADMAP = [
 ];
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nombre, rol")
-    .eq("id", user!.id)
-    .single();
+  const profile = await requireProfile();
 
   return (
     <div>
