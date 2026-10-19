@@ -8,6 +8,7 @@ import {
   BarChart3,
   FileBarChart,
   CalendarDays,
+  ShieldCheck,
   ArrowRight,
 } from "lucide-react";
 import { requireProfile } from "@/lib/session";
@@ -60,14 +61,20 @@ const ACCESOS_RAPIDOS = [
     titulo: "Informes semanales",
     detalle: "El análisis automático de cada semana, con conclusiones de IA.",
   },
+  {
+    href: "/calendario",
+    icon: CalendarDays,
+    titulo: "Calendario",
+    detalle: "El tiempo registrado día a día, con exportación a CSV y Excel.",
+  },
 ];
 
 const ROADMAP = [
   {
-    icon: CalendarDays,
-    fase: "Fase 6",
-    titulo: "Histórico, calendario y exportaciones",
-    detalle: "Calendario interactivo, comparar semanas y exportar a PDF, CSV o Excel.",
+    icon: ShieldCheck,
+    fase: "Fase 7",
+    titulo: "Pruebas reales, seguridad y publicación",
+    detalle: "Revisión con los 16 socios, endurecer permisos y dejarlo listo para el día a día.",
   },
 ];
 
@@ -103,7 +110,7 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title={`Hola, ${profile?.nombre ?? ""}`}
-        description="Cronómetro, proyectos, tareas, equipo, estadísticas e informes semanales ya funcionan de verdad: esto es la Fase 5 completa."
+        description="Cronómetro, proyectos, tareas, equipo, estadísticas, informes semanales y calendario ya funcionan de verdad: esto es la Fase 6 completa."
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-[1.2fr_1fr]">
@@ -124,11 +131,11 @@ export default async function DashboardPage() {
         </Link>
         <Card className="flex flex-col justify-center gap-2 p-6">
           <div className="flex items-center gap-2 text-sm font-medium text-ink">
-            Fases 1 a 5 funcionando
+            Fases 1 a 6 funcionando
           </div>
           <p className="text-sm text-ink-secondary">
-            Cronómetro, proyectos, tareas, equipo, estadísticas e informes
-            semanales reales, listos para los 16 socios.
+            Cronómetro, proyectos, tareas, equipo, estadísticas, informes
+            semanales y calendario reales, listos para los 16 socios.
           </p>
           {profile?.rol === "admin" && (
             <span className="mt-1 inline-flex w-fit shrink-0 rounded-sm bg-accent-soft px-3 py-1 text-xs font-medium text-accent">

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Sparkles, Info } from "lucide-react";
+import { ArrowLeft, Sparkles, Info, Download } from "lucide-react";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
 import { formatDuracionCorta, formatFecha } from "@/lib/utils";
@@ -102,6 +102,15 @@ export default async function InformeDetallePage({
             <Badge tone={ESTADO_TONE[informe.status]}>
               {ESTADO_LABEL[informe.status]}
             </Badge>
+            {informe.status === "completado" && (
+              <a
+                href={`/api/export/informes/${informe.id}`}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-secondary hover:text-ink"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Exportar a PDF
+              </a>
+            )}
             {profile.rol === "admin" && informe.status !== "generando" && (
               <RegenerarInformeButton semanaInicio={informe.semana_inicio} />
             )}

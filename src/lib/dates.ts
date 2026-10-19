@@ -46,3 +46,26 @@ export function addDias(fechaISO: string, dias: number): string {
   dt.setUTCDate(dt.getUTCDate() + dias);
   return dt.toISOString().slice(0, 10);
 }
+
+/** Primer y último día (YYYY-MM-DD) del mes que contiene la fecha dada. */
+export function mesDe(fechaISO: string): { inicio: string; fin: string } {
+  const [y, m] = fechaISO.split("-").map(Number);
+  const inicio = `${y}-${String(m).padStart(2, "0")}-01`;
+  // El día 0 del mes siguiente es el último día de este mes.
+  const ultimoDia = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const fin = `${y}-${String(m).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+  return { inicio, fin };
+}
+
+/**
+ * Suma (o resta) meses completos al día 1 del mes de la fecha dada; siempre
+ * devuelve un día 1, para usarla como ancla de navegación mes a mes sin
+ * problemas de "31 de enero + 1 mes" (evita desbordar a marzo).
+ */
+export function addMeses(fechaISO: string, meses: number): string {
+  const [y, m] = fechaISO.split("-").map(Number);
+  const total = y * 12 + (m - 1) + meses;
+  const nuevoAnio = Math.floor(total / 12);
+  const nuevoMes = ((total % 12) + 12) % 12;
+  return `${nuevoAnio}-${String(nuevoMes + 1).padStart(2, "0")}-01`;
+}

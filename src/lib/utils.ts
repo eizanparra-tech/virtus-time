@@ -34,6 +34,24 @@ export function formatFecha(fechaISO: string): string {
   });
 }
 
+/** "Octubre 2026", a partir de cualquier fecha YYYY-MM-DD de ese mes. */
+export function formatMesAnio(fechaISO: string): string {
+  const texto = new Date(`${fechaISO}T00:00:00`).toLocaleDateString("es-ES", {
+    month: "long",
+    year: "numeric",
+  });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/** "Lun", "Mar"... a partir de una fecha YYYY-MM-DD. */
+export function formatDiaCorto(fechaISO: string): string {
+  const texto = new Date(`${fechaISO}T00:00:00`).toLocaleDateString("es-ES", {
+    weekday: "short",
+  });
+  const limpio = texto.replace(".", "");
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+}
+
 export function iniciales(nombre: string, apellidos: string): string {
   const n = nombre.trim().charAt(0) ?? "";
   const a = apellidos.trim().charAt(0) ?? "";
