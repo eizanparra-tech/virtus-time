@@ -29,9 +29,9 @@ export default async function ConfiguracionPage() {
       {profile.rol === "admin" ? (
         <ComingSoon
           icon={Settings2}
-          fase="Fase 3 y 7"
-          titulo="Panel de administración"
-          descripcion="Crear y desactivar perfiles, archivar proyectos, corregir registros con historial de cambios y consultar el estado de los informes automáticos."
+          fase="Fase 7"
+          titulo="Panel de administración avanzado"
+          descripcion="Crear y desactivar socios, asignarlos a proyectos, archivar proyectos y gestionar tareas ya se puede hacer desde Equipo, Proyectos y Tareas. Aquí llegará más adelante corregir los registros de cualquier socio (no solo los propios) y consultar el estado de los informes automáticos."
         />
       ) : null}
     </div>

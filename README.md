@@ -2,19 +2,23 @@
 
 Aplicación de registro de horas para VIRTUS COMPANY (16 socios), inspirada en Clockify.
 
-Este README explica la **Fase 1**: estructura del proyecto, diseño base, acceso por perfiles y base de datos. Las fases siguientes (cronómetro, gestión de proyectos, dashboards, informes automáticos, calendario...) se construirán encima de esta base, una a una.
+Este README explica lo que ya está construido (**Fases 1 a 3**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, y gestión de proyectos, tareas y equipo. Las fases siguientes (dashboards y estadísticas, informes automáticos, calendario...) se construirán encima de esta base, una a una.
 
-## Qué incluye la Fase 1
+## Qué funciona ya de verdad
 
-- Proyecto Next.js 16 + TypeScript + Tailwind CSS v4, listo para desplegar en Vercel.
+- Proyecto Next.js 16 + TypeScript + Tailwind CSS v4, desplegado en Vercel.
 - Conexión a Supabase (solo como base de datos PostgreSQL; no se usan contraseñas).
-- Base de datos completa con todas las tablas que usará la aplicación (socios, proyectos, tareas, registros de tiempo, historial de cambios, informes semanales).
 - **Entrada por perfiles, sin contraseñas**: una pantalla con el nombre de cada socio; tocas el tuyo y entras. Un asistente de configuración inicial (`/setup`) crea el primer perfil (administrador), y solo funciona una vez.
+- **Cronómetro**: elegir proyecto, escribir en qué trabajas (obligatorio), iniciar/pausar/reanudar/finalizar; el tiempo se calcula siempre a partir de una hora real guardada en el servidor, nunca inventado en el navegador. Solo puede haber un cronómetro activo por socio.
+- **Registro manual de horas** y **Mis registros**: historial propio por día, con edición (descripción, fecha, duración) y borrado, guardando el historial de cambios.
+- **Proyectos**: crear proyectos (admin), ver el detalle de cada uno, editarlo y asignarle socios.
+- **Tareas**: crear tareas dentro de un proyecto, con responsable y fecha límite opcionales, cambiar su estado, y borrarlas (quien las creó o un administrador).
+- **Equipo**: dar de alta nuevos socios desde la web (sin que tengan que crear nada ellos), activar/desactivar cuentas y asignar el rol de administrador.
 - El menú lateral y la estructura visual de las 10 secciones de la aplicación (Dashboard, Cronómetro, Mis registros, Proyectos, Tareas, Equipo, Estadísticas, Informes semanales, Calendario, Configuración), adaptada a móvil.
 - **Instalable como app**: tiene icono y configuración para que, desde el móvil, cualquiera pueda pulsar "Añadir a pantalla de inicio" y usarla como una app normal, sin pasar por ninguna tienda de aplicaciones.
 - Un sistema de diseño propio (colores, tipografías, componentes) para que el resto de fases sean coherentes visualmente.
 
-Todas las secciones salvo el Dashboard muestran de momento una pantalla "Próximamente en la Fase X": la estructura y la navegación ya funcionan, pero la funcionalidad de cada una se construye en su fase correspondiente, como pediste.
+Estadísticas, Informes semanales y Calendario todavía muestran una pantalla "Próximamente en la Fase X": la estructura y la navegación ya funcionan, pero la funcionalidad de cada una se construye en su fase correspondiente.
 
 ### Sobre no usar contraseñas
 
@@ -94,13 +98,14 @@ public/
   icons/                      Iconos de la app
 ```
 
-## Próximas fases
+## Fases
 
-| Fase | Contenido |
-|---|---|
-| 2 | Cronómetro, registro manual, descripciones libres |
-| 3 | Gestión de proyectos, tareas y perfiles desde la web |
-| 4 | Dashboards y estadísticas |
-| 5 | Informes automáticos semanales y conclusiones inteligentes |
-| 6 | Histórico, calendario y exportaciones |
-| 7 | Pruebas reales, seguridad y publicación |
+| Fase | Contenido | Estado |
+|---|---|---|
+| 1 | Base del proyecto, acceso por perfiles, base de datos | ✅ Hecho |
+| 2 | Cronómetro, registro manual, descripciones libres | ✅ Hecho |
+| 3 | Gestión de proyectos, tareas y equipo desde la web | ✅ Hecho |
+| 4 | Dashboards y estadísticas | Pendiente |
+| 5 | Informes automáticos semanales y conclusiones inteligentes | Pendiente |
+| 6 | Histórico, calendario y exportaciones | Pendiente |
+| 7 | Pruebas reales, seguridad y publicación | Pendiente |

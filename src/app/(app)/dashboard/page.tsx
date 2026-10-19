@@ -3,6 +3,8 @@ import {
   TimerIcon,
   ListChecks,
   FolderKanban,
+  CheckSquare,
+  Users,
   BarChart3,
   FileBarChart,
   CalendarDays,
@@ -32,18 +34,23 @@ const ACCESOS_RAPIDOS = [
     href: "/proyectos",
     icon: FolderKanban,
     titulo: "Proyectos",
-    detalle: "Consulta los proyectos disponibles.",
+    detalle: "Consulta y gestiona los proyectos.",
+  },
+  {
+    href: "/tareas",
+    icon: CheckSquare,
+    titulo: "Tareas",
+    detalle: "Qué hay pendiente en cada proyecto.",
+  },
+  {
+    href: "/equipo",
+    icon: Users,
+    titulo: "Equipo",
+    detalle: "Los socios de VIRTUS COMPANY.",
   },
 ];
 
 const ROADMAP = [
-  {
-    icon: FolderKanban,
-    fase: "Fase 3",
-    titulo: "Proyectos, tareas y socios",
-    detalle:
-      "Asignar socios a cada proyecto, gestionar tareas e invitaciones desde la propia web.",
-  },
   {
     icon: BarChart3,
     fase: "Fase 4",
@@ -96,7 +103,7 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title={`Hola, ${profile?.nombre ?? ""}`}
-        description="El cronómetro, el registro manual y tus registros ya funcionan de verdad: esto es la Fase 2 completa."
+        description="Cronómetro, proyectos, tareas y equipo ya funcionan de verdad: esto es la Fase 3 completa."
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-[1.2fr_1fr]">
@@ -115,11 +122,11 @@ export default async function DashboardPage() {
         </Card>
         <Card className="flex flex-col justify-center gap-2 p-6">
           <div className="flex items-center gap-2 text-sm font-medium text-ink">
-            Fase 1 y 2 funcionando
+            Fase 1, 2 y 3 funcionando
           </div>
           <p className="text-sm text-ink-secondary">
-            Inicio de sesión, base de datos, cronómetro y registro manual
-            listos para los 16 socios.
+            Cronómetro, proyectos con socios asignados, tareas y gestión de
+            equipo listos para los 16 socios.
           </p>
           {profile?.rol === "admin" && (
             <span className="mt-1 inline-flex w-fit shrink-0 rounded-sm bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
@@ -132,7 +139,7 @@ export default async function DashboardPage() {
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">
         Accesos rápidos
       </h2>
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {ACCESOS_RAPIDOS.map((item) => (
           <Link key={item.href} href={item.href}>
             <Card className="group flex h-full items-start gap-3 p-5 transition-colors hover:border-brand/40">

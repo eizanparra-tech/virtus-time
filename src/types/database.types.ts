@@ -72,7 +72,10 @@ export interface Database {
           user_id: string;
           added_at: string;
         };
-        Insert: Database["public"]["Tables"]["project_members"]["Row"];
+        Insert: Partial<Database["public"]["Tables"]["project_members"]["Row"]> & {
+          project_id: string;
+          user_id: string;
+        };
         Update: Partial<Database["public"]["Tables"]["project_members"]["Row"]>;
       } & NoRelationships;
       tasks: {
