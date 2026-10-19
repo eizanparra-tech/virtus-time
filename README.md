@@ -2,7 +2,7 @@
 
 Aplicación de registro de horas para VIRTUS COMPANY (16 socios), inspirada en Clockify.
 
-Este README explica lo que ya está construido (**Fases 1 a 4**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, y estadísticas. Las fases siguientes (informes automáticos, calendario...) se construirán encima de esta base, una a una.
+Este README explica lo que ya está construido (**Fases 1 a 5**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas e informes semanales automáticos. Las fases siguientes (calendario, exportaciones...) se construirán encima de esta base, una a una.
 
 ## Qué funciona ya de verdad
 
@@ -15,11 +15,12 @@ Este README explica lo que ya está construido (**Fases 1 a 4**): estructura del
 - **Tareas**: crear tareas dentro de un proyecto, con responsable y fecha límite opcionales, cambiar su estado, y borrarlas (quien las creó o un administrador).
 - **Equipo**: dar de alta nuevos socios desde la web (sin que tengan que crear nada ellos), activar/desactivar cuentas y asignar el rol de administrador.
 - **Estadísticas**: horas por proyecto, por socio (vista de empresa para administradores) y su evolución día a día o semana a semana, con un selector de periodo (esta semana / este mes / últimas 12 semanas) y la comparativa frente al periodo anterior. Todo calculado al momento a partir de los registros reales, con gráficos de Recharts.
+- **Informes semanales**: cada lunes de madrugada se genera automáticamente (tarea programada en Vercel) el informe de la semana que acaba de terminar, con las horas reales por proyecto y por socio, y quién no registró nada. Un resumen escrito por IA describe esos mismos números en un párrafo, sin inventar causas ni juicios; si no hay clave de IA configurada, el informe se genera igual, solo que sin ese párrafo. Un administrador también puede generarlo o recalcularlo a mano desde la propia página.
 - El menú lateral y la estructura visual de las 10 secciones de la aplicación (Dashboard, Cronómetro, Mis registros, Proyectos, Tareas, Equipo, Estadísticas, Informes semanales, Calendario, Configuración), adaptada a móvil.
 - **Instalable como app**: tiene icono y configuración para que, desde el móvil, cualquiera pueda pulsar "Añadir a pantalla de inicio" y usarla como una app normal, sin pasar por ninguna tienda de aplicaciones.
 - Un sistema de diseño propio (colores, tipografías, componentes) para que el resto de fases sean coherentes visualmente.
 
-Informes semanales y Calendario todavía muestran una pantalla "Próximamente en la Fase X": la estructura y la navegación ya funcionan, pero la funcionalidad de cada una se construye en su fase correspondiente.
+Calendario todavía muestra una pantalla "Próximamente en la Fase X": la estructura y la navegación ya funcionan, pero su funcionalidad se construye en su fase correspondiente.
 
 ### Sobre no usar contraseñas
 
@@ -48,7 +49,7 @@ Supabase es la base de datos de VIRTUS TIME (guarda los perfiles, proyectos y ho
    Abre `.env.local` y rellena:
    - `NEXT_PUBLIC_SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` con los datos de tu proyecto de Supabase.
    - `SESSION_SECRET`: una cadena aleatoria larga que protege la sesión de cada perfil. Genérala con `openssl rand -hex 32` (en la terminal) y pégala tal cual.
-   - Deja `ANTHROPIC_API_KEY` y `CRON_SECRET` para más adelante (Fase 5).
+   - `ANTHROPIC_API_KEY` y `CRON_SECRET` son para los informes semanales (Fase 5); si solo quieres probar la aplicación en tu ordenador puedes dejarlas vacías.
 3. Arranca la aplicación en modo desarrollo:
    ```bash
    npm run dev
@@ -107,6 +108,6 @@ public/
 | 2 | Cronómetro, registro manual, descripciones libres | ✅ Hecho |
 | 3 | Gestión de proyectos, tareas y equipo desde la web | ✅ Hecho |
 | 4 | Dashboards y estadísticas | ✅ Hecho |
-| 5 | Informes automáticos semanales y conclusiones inteligentes | Pendiente |
+| 5 | Informes automáticos semanales y conclusiones inteligentes | ✅ Hecho |
 | 6 | Histórico, calendario y exportaciones | Pendiente |
 | 7 | Pruebas reales, seguridad y publicación | Pendiente |

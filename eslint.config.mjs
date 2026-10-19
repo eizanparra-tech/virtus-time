@@ -13,6 +13,17 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Un parámetro con nombre que empieza por "_" (p.ej. el "_prev" que exige
+  // la firma de useActionState en una Server Action que no lo necesita) es
+  // intencionadamente no usado, no un descuido.
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

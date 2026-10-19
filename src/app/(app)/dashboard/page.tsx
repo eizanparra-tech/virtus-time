@@ -54,15 +54,15 @@ const ACCESOS_RAPIDOS = [
     titulo: "Estadísticas",
     detalle: "Horas por proyecto, por socio y su evolución.",
   },
+  {
+    href: "/informes",
+    icon: FileBarChart,
+    titulo: "Informes semanales",
+    detalle: "El análisis automático de cada semana, con conclusiones de IA.",
+  },
 ];
 
 const ROADMAP = [
-  {
-    icon: FileBarChart,
-    fase: "Fase 5",
-    titulo: "Informes automáticos",
-    detalle: "Cada lunes, análisis de la semana con conclusiones basadas en datos reales.",
-  },
   {
     icon: CalendarDays,
     fase: "Fase 6",
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title={`Hola, ${profile?.nombre ?? ""}`}
-        description="Cronómetro, proyectos, tareas, equipo y estadísticas ya funcionan de verdad: esto es la Fase 4 completa."
+        description="Cronómetro, proyectos, tareas, equipo, estadísticas e informes semanales ya funcionan de verdad: esto es la Fase 5 completa."
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-[1.2fr_1fr]">
@@ -124,11 +124,11 @@ export default async function DashboardPage() {
         </Link>
         <Card className="flex flex-col justify-center gap-2 p-6">
           <div className="flex items-center gap-2 text-sm font-medium text-ink">
-            Fases 1 a 4 funcionando
+            Fases 1 a 5 funcionando
           </div>
           <p className="text-sm text-ink-secondary">
-            Cronómetro, proyectos, tareas, equipo y estadísticas reales
-            listos para los 16 socios.
+            Cronómetro, proyectos, tareas, equipo, estadísticas e informes
+            semanales reales, listos para los 16 socios.
           </p>
           {profile?.rol === "admin" && (
             <span className="mt-1 inline-flex w-fit shrink-0 rounded-sm bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
