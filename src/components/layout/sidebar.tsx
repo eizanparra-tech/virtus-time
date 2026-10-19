@@ -31,7 +31,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center justify-between px-5">
+        <div className="flex h-[calc(4rem+env(safe-area-inset-top))] items-center justify-between px-5 pt-[env(safe-area-inset-top)]">
           <Link href="/dashboard" className="flex items-baseline gap-1.5">
             <span className="font-display text-xl font-semibold tracking-tight">
               Virtus

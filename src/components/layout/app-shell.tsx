@@ -20,7 +20,7 @@ export function AppShell({
       <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-surface/90 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-[calc(4rem+env(safe-area-inset-top))] items-center justify-between border-b border-border bg-surface/90 px-4 pt-[env(safe-area-inset-top)] backdrop-blur sm:px-6">
           <button
             aria-label="Abrir menú"
             onClick={() => setDrawerOpen(true)}
