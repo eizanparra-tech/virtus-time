@@ -43,6 +43,17 @@ export function formatMesAnio(fechaISO: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
+/** "19 oct, 23:15", a partir de un timestamp ISO completo (con hora). */
+export function formatFechaHora(isoTimestamp: string): string {
+  return new Date(isoTimestamp).toLocaleString("es-ES", {
+    timeZone: "Europe/Madrid",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 /** "Lun", "Mar"... a partir de una fecha YYYY-MM-DD. */
 export function formatDiaCorto(fechaISO: string): string {
   const texto = new Date(`${fechaISO}T00:00:00`).toLocaleDateString("es-ES", {
@@ -50,6 +61,20 @@ export function formatDiaCorto(fechaISO: string): string {
   });
   const limpio = texto.replace(".", "");
   return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+}
+
+/**
+ * Comprueba que una ruta de redirección es realmente interna a la
+ * aplicación, no una forma disfrazada de salir a otro sitio. "/foo" es
+ * segura; "//evil.com" o "/\evil.com" son, para el navegador, URLs
+ * absolutas a otro dominio (el "esquema relativo" //), aunque empiecen
+ * por una barra. Se usa al volver de /login con un redirectTo que viene
+ * de la URL, y por tanto no es de fiar.
+ */
+export function esRutaInternaSegura(ruta: string): boolean {
+  return (
+    ruta.startsWith("/") && !ruta.startsWith("//") && !ruta.startsWith("/\\")
+  );
 }
 
 export function iniciales(nombre: string, apellidos: string): string {

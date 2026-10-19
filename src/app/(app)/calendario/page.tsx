@@ -8,7 +8,8 @@ import { PageHeader } from "@/components/layout/page-header";
 import { hrefCalendario, type Periodo, type VistaCalendario } from "./href";
 import { MonthGrid, type DiaCelda } from "./month-grid";
 import { WeekView, type DiaSemana } from "./week-view";
-import { DayView, type EntradaDia, type GrupoSocio } from "./day-view";
+import { DayView, type GrupoSocio } from "./day-view";
+import type { RegistroView } from "../registros/registro-row";
 
 const PERIODO_TABS: { value: Periodo; label: string }[] = [
   { value: "dia", label: "Día" },
@@ -100,7 +101,7 @@ export default async function CalendarioPage({
   let entradasQuery = db
     .from("time_entries")
     .select(
-      "id, user_id, project_id, descripcion, fecha, duracion_segundos"
+      "id, user_id, project_id, descripcion, fecha, duracion_segundos, es_manual"
     )
     .not("hora_fin", "is", null)
     .gte("fecha", consultaInicio)
@@ -138,7 +139,7 @@ export default async function CalendarioPage({
   const diasSemana: DiaSemana[] = [];
   let totalSemana = 0;
   let totalAnterior = 0;
-  let entradasDelDia: EntradaDia[] = [];
+  let entradasDelDia: RegistroView[] = [];
   let gruposDelDia: GrupoSocio[] = [];
 
   if (periodo === "mes") {
@@ -194,32 +195,27 @@ export default async function CalendarioPage({
     }
   } else {
     const entradasHoy = todas.filter((e) => e.fecha === fecha);
+    const aRegistroView = (e: (typeof entradasHoy)[number]): RegistroView => ({
+      id: e.id,
+      descripcion: e.descripcion,
+      fecha: e.fecha,
+      duracionSegundos: e.duracion_segundos,
+      esManual: e.es_manual,
+      proyecto: {
+        nombre: proyectoPorId.get(e.project_id)?.nombre ?? "Proyecto eliminado",
+        color: proyectoPorId.get(e.project_id)?.color ?? "#8893a3",
+      },
+    });
+
     entradasDelDia = entradasHoy
-      .map((e) => ({
-        id: e.id,
-        descripcion: e.descripcion,
-        duracionSegundos: e.duracion_segundos,
-        proyecto: {
-          nombre: proyectoPorId.get(e.project_id)?.nombre ?? "Proyecto eliminado",
-          color: proyectoPorId.get(e.project_id)?.color ?? "#8893a3",
-        },
-      }))
+      .map(aRegistroView)
       .sort((a, b) => b.duracionSegundos - a.duracionSegundos);
 
     if (vista === "empresa") {
-      const porSocio = new Map<string, EntradaDia[]>();
+      const porSocio = new Map<string, RegistroView[]>();
       for (const e of entradasHoy) {
         const lista = porSocio.get(e.user_id) ?? [];
-        lista.push({
-          id: e.id,
-          descripcion: e.descripcion,
-          duracionSegundos: e.duracion_segundos,
-          proyecto: {
-            nombre:
-              proyectoPorId.get(e.project_id)?.nombre ?? "Proyecto eliminado",
-            color: proyectoPorId.get(e.project_id)?.color ?? "#8893a3",
-          },
-        });
+        lista.push(aRegistroView(e));
         porSocio.set(e.user_id, lista);
       }
       gruposDelDia = Array.from(porSocio.entries())

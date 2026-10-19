@@ -23,7 +23,15 @@ export interface RegistroView {
 
 const initialState: RegistroActionState = { ok: false };
 
-export function RegistroRow({ registro }: { registro: RegistroView }) {
+export function RegistroRow({
+  registro,
+  puedeEditar = true,
+}: {
+  registro: RegistroView;
+  /** Un administrador puede corregir el registro de cualquier socio desde
+   * el Calendario; un socio normal solo ve estos controles en los suyos. */
+  puedeEditar?: boolean;
+}) {
   const [editing, setEditing] = useState(false);
   const [deleteState, deleteAction] = useActionState(
     borrarRegistroAction,
@@ -58,35 +66,41 @@ export function RegistroRow({ registro }: { registro: RegistroView }) {
         <span className="text-sm font-medium tabular-nums text-ink">
           {formatDuracionCorta(registro.duracionSegundos)}
         </span>
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="text-ink-muted transition-colors hover:text-ink"
-          aria-label="Editar registro"
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
-        <form
-          action={deleteAction}
-          onSubmit={(e) => {
-            if (
-              !window.confirm("¿Borrar este registro? No se puede deshacer.")
-            ) {
-              e.preventDefault();
-            }
-          }}
-        >
-          <input type="hidden" name="entryId" value={registro.id} />
-          <button
-            type="submit"
-            className="text-ink-muted transition-colors hover:text-negative"
-            aria-label="Borrar registro"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </form>
+        {puedeEditar && (
+          <>
+            <button
+              type="button"
+              onClick={() => setEditing(true)}
+              className="text-ink-muted transition-colors hover:text-ink"
+              aria-label="Editar registro"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <form
+              action={deleteAction}
+              onSubmit={(e) => {
+                if (
+                  !window.confirm(
+                    "¿Borrar este registro? No se puede deshacer."
+                  )
+                ) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <input type="hidden" name="entryId" value={registro.id} />
+              <button
+                type="submit"
+                className="text-ink-muted transition-colors hover:text-negative"
+                aria-label="Borrar registro"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </form>
+          </>
+        )}
       </div>
-      {deleteState.error && (
+      {puedeEditar && deleteState.error && (
         <p className="w-full text-sm text-negative">{deleteState.error}</p>
       )}
     </div>

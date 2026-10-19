@@ -8,7 +8,6 @@ import {
   BarChart3,
   FileBarChart,
   CalendarDays,
-  ShieldCheck,
   ArrowRight,
 } from "lucide-react";
 import { requireProfile } from "@/lib/session";
@@ -69,14 +68,6 @@ const ACCESOS_RAPIDOS = [
   },
 ];
 
-const ROADMAP = [
-  {
-    icon: ShieldCheck,
-    fase: "Fase 7",
-    titulo: "Pruebas reales, seguridad y publicación",
-    detalle: "Revisión con los 16 socios, endurecer permisos y dejarlo listo para el día a día.",
-  },
-];
 
 export default async function DashboardPage() {
   const profile = await requireProfile();
@@ -110,7 +101,7 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title={`Hola, ${profile?.nombre ?? ""}`}
-        description="Cronómetro, proyectos, tareas, equipo, estadísticas, informes semanales y calendario ya funcionan de verdad: esto es la Fase 6 completa."
+        description="Cronómetro, proyectos, tareas, equipo, estadísticas, informes semanales y calendario ya funcionan de verdad: esto es la Fase 7, la última del plan inicial."
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-[1.2fr_1fr]">
@@ -131,7 +122,7 @@ export default async function DashboardPage() {
         </Link>
         <Card className="flex flex-col justify-center gap-2 p-6">
           <div className="flex items-center gap-2 text-sm font-medium text-ink">
-            Fases 1 a 6 funcionando
+            Fases 1 a 7 funcionando
           </div>
           <p className="text-sm text-ink-secondary">
             Cronómetro, proyectos, tareas, equipo, estadísticas, informes
@@ -170,24 +161,25 @@ export default async function DashboardPage() {
       </div>
 
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">
-        Próximos pasos
+        Qué sigue
       </h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {ROADMAP.map((item) => (
-          <Card key={item.titulo} className="p-5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-brand/5 text-brand">
-              <item.icon className="h-4 w-4" />
-            </span>
-            <p className="mt-3 text-xs font-medium uppercase tracking-wide text-accent">
-              {item.fase}
+      <Link href="/equipo">
+        <Card className="flex items-center gap-3 p-5 transition-colors hover:border-brand/40">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand/5 text-brand">
+            <Users className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-base font-semibold text-ink">
+              Pruébalo con el equipo
             </p>
-            <p className="mt-1 font-display text-base font-semibold text-ink">
-              {item.titulo}
+            <p className="mt-1 text-sm text-ink-secondary">
+              Añade a los 16 socios desde Equipo y que cada uno use el
+              cronómetro un día cualquiera: es la mejor prueba real.
             </p>
-            <p className="mt-1.5 text-sm text-ink-secondary">{item.detalle}</p>
-          </Card>
-        ))}
-      </div>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-ink-muted" />
+        </Card>
+      </Link>
     </div>
   );
 }

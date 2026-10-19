@@ -3,11 +3,12 @@
 import { redirect } from "next/navigation";
 import { createDbClient } from "@/lib/supabase/db";
 import { createSessionCookie } from "@/lib/session";
+import { esRutaInternaSegura } from "@/lib/utils";
 
 export async function selectProfileAction(formData: FormData) {
   const profileId = String(formData.get("profileId") ?? "");
   const redirectTo = String(formData.get("redirectTo") ?? "/dashboard");
-  const destino = redirectTo.startsWith("/") ? redirectTo : "/dashboard";
+  const destino = esRutaInternaSegura(redirectTo) ? redirectTo : "/dashboard";
 
   const db = createDbClient();
   const { data: profile } = await db

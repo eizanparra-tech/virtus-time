@@ -2,7 +2,7 @@
 
 Aplicación de registro de horas para VIRTUS COMPANY (16 socios), inspirada en Clockify.
 
-Este README explica lo que ya está construido (**Fases 1 a 6**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas, informes semanales automáticos, calendario y exportaciones. La fase siguiente (pruebas reales, seguridad y publicación) se construirá encima de esta base.
+Este README explica lo que ya está construido (**Fases 1 a 7, todo el plan inicial**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas, informes semanales automáticos, calendario, exportaciones y un repaso de seguridad. Lo único que queda es que el equipo la use de verdad (ver "Antes de usarla con todo el equipo" más abajo).
 
 ## Qué funciona ya de verdad
 
@@ -16,14 +16,33 @@ Este README explica lo que ya está construido (**Fases 1 a 6**): estructura del
 - **Equipo**: dar de alta nuevos socios desde la web (sin que tengan que crear nada ellos), activar/desactivar cuentas y asignar el rol de administrador.
 - **Estadísticas**: horas por proyecto, por socio (vista de empresa para administradores) y su evolución día a día o semana a semana, con un selector de periodo (esta semana / este mes / últimas 12 semanas) y la comparativa frente al periodo anterior. Todo calculado al momento a partir de los registros reales, con gráficos de Recharts.
 - **Informes semanales**: cada lunes de madrugada se genera automáticamente (tarea programada en Vercel) el informe de la semana que acaba de terminar, con las horas reales por proyecto y por socio, y quién no registró nada. Un resumen escrito por IA describe esos mismos números en un párrafo, sin inventar causas ni juicios; si no hay clave de IA configurada, el informe se genera igual, solo que sin ese párrafo. Un administrador también puede generarlo o recalcularlo a mano desde la propia página. También se puede **exportar cualquier informe a PDF**.
-- **Calendario**: el tiempo registrado en tres vistas (día, semana, mes), con un color distinto para cada proyecto; en la vista mes cada día muestra una mini barra de colores proporcional a las horas de cada proyecto. La vista semana compara el total con la semana anterior. Los administradores pueden ver el calendario de toda la empresa, no solo el suyo. Desde cualquier vista se puede **exportar los registros del periodo a CSV o a Excel**.
+- **Calendario**: el tiempo registrado en tres vistas (día, semana, mes), con un color distinto para cada proyecto; en la vista mes cada día muestra una mini barra de colores proporcional a las horas de cada proyecto. La vista semana compara el total con la semana anterior. Los administradores pueden ver el calendario de toda la empresa, no solo el suyo, y **corregir o borrar el registro de cualquier socio** desde ahí (no solo los propios). Desde cualquier vista se puede **exportar los registros del periodo a CSV o a Excel**.
+- **Panel de informes en Configuración** (solo administradores): el estado del último informe semanal generado, con enlace directo a verlo.
 - El menú lateral y la estructura visual de las 10 secciones de la aplicación (Dashboard, Cronómetro, Mis registros, Proyectos, Tareas, Equipo, Estadísticas, Informes semanales, Calendario, Configuración), adaptada a móvil.
 - **Instalable como app**: tiene icono y configuración para que, desde el móvil, cualquiera pueda pulsar "Añadir a pantalla de inicio" y usarla como una app normal, sin pasar por ninguna tienda de aplicaciones. Respeta la zona del notch/barra de estado en los dispositivos que la tienen.
-- Un sistema de diseño propio (colores, tipografías, componentes) para que el resto de fases sean coherentes visualmente.
+- Un sistema de diseño propio (colores, tipografías, componentes) para que toda la aplicación sea coherente visualmente.
 
 ### Sobre no usar contraseñas
 
 Decidimos que cada socio entra eligiendo su nombre de una lista, sin contraseña. Es mucho más cómodo para 16 compañeros de confianza, pero significa que cualquiera que tenga el enlace podría entrar como si fuera otra persona. Si en algún momento queréis añadir algo de protección (por ejemplo, un PIN corto por persona), es un cambio pequeño y lo podemos añadir más adelante sin rehacer nada.
+
+### Repaso de seguridad (Fase 7)
+
+Antes de dar la aplicación por terminada se ha hecho un repaso completo:
+
+- Se corrigió un fallo real: la tarea programada de los informes semanales quedaba bloqueada por la misma protección que exige haber iniciado sesión, así que nunca habría llegado a ejecutarse los lunes. Ya está arreglado y verificado.
+- Se corrigió un enlace de inicio de sesión que, manipulado a mano, podía acabar redirigiendo fuera de la aplicación.
+- Se ha revisado que cada acción que cambia datos (crear, editar, borrar, cambiar roles...) comprueba en el servidor quién la pide — nunca solo si el botón se ve o no en la pantalla — y que ninguna clave secreta llega nunca al navegador.
+- Se ha añadido `robots.txt` para que los buscadores no indexen la aplicación (es privada, de uso interno).
+
+### Antes de usarla con todo el equipo
+
+Esto ya no es código: es la propia prueba real con las 16 personas de VIRTUS COMPANY, y solo la podéis hacer vosotros.
+
+1. Añade a los socios que falten desde **Equipo**.
+2. Pide a 2-3 personas que la usen un día normal: cronómetro, registro manual, revisar sus horas.
+3. Comprueba el lunes siguiente que el informe semanal se generó solo (o pruébalo a mano desde Informes semanales).
+4. Si todo va bien, compártela con el resto del equipo.
 
 ## Antes de nada: crea tu proyecto de Supabase
 
@@ -109,4 +128,4 @@ public/
 | 4 | Dashboards y estadísticas | ✅ Hecho |
 | 5 | Informes automáticos semanales y conclusiones inteligentes | ✅ Hecho |
 | 6 | Histórico, calendario y exportaciones | ✅ Hecho |
-| 7 | Pruebas reales, seguridad y publicación | Pendiente |
+| 7 | Pruebas reales, seguridad y publicación | ✅ Hecho (código); la prueba con el equipo la hacéis vosotros |

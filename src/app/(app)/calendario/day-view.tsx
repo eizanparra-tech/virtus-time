@@ -1,40 +1,20 @@
 import { ListChecks } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatDuracionCorta } from "@/lib/utils";
+import { RegistroRow, type RegistroView } from "../registros/registro-row";
 import type { VistaCalendario } from "./href";
-
-export interface EntradaDia {
-  id: string;
-  descripcion: string;
-  duracionSegundos: number;
-  proyecto: { nombre: string; color: string };
-}
 
 export interface GrupoSocio {
   socioId: string;
   nombre: string;
-  entradas: EntradaDia[];
+  entradas: RegistroView[];
 }
 
-function ListaEntradas({ entradas }: { entradas: EntradaDia[] }) {
+function ListaEntradas({ entradas }: { entradas: RegistroView[] }) {
   return (
     <Card className="divide-y divide-border">
       {entradas.map((e) => (
-        <div key={e.id} className="flex items-start gap-3 p-4">
-          <span
-            className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
-            style={{ backgroundColor: e.proyecto.color }}
-          />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
-              {e.proyecto.nombre}
-            </p>
-            <p className="mt-0.5 text-sm text-ink">{e.descripcion}</p>
-          </div>
-          <span className="shrink-0 text-sm font-medium tabular-nums text-ink">
-            {formatDuracionCorta(e.duracionSegundos)}
-          </span>
-        </div>
+        <RegistroRow key={e.id} registro={e} />
       ))}
     </Card>
   );
@@ -46,7 +26,7 @@ export function DayView({
   grupos,
 }: {
   vista: VistaCalendario;
-  entradas: EntradaDia[];
+  entradas: RegistroView[];
   grupos: GrupoSocio[];
 }) {
   const sinActividad =

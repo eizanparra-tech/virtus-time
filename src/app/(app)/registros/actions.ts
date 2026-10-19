@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createDbClient } from "@/lib/supabase/db";
 import { requireProfile } from "@/lib/session";
 import { todayMadrid, fechaManualComoHoraInicio } from "@/lib/dates";
+import type { Profile } from "@/types/database.types";
 
 export interface RegistroActionState {
   ok: boolean;
@@ -31,16 +32,29 @@ async function registrarHistorial(
   }
 }
 
-/** Solo se pueden editar/borrar registros propios y ya finalizados (el cronómetro activo se gestiona desde /cronometro). */
-async function cargarRegistroPropioFinalizado(profileId: string, entryId: string) {
+/**
+ * Solo se pueden editar/borrar registros ya finalizados (el cronómetro
+ * activo se gestiona desde /cronometro). Un socio normal solo puede tocar
+ * los suyos; un administrador puede corregir el de cualquiera (p.ej. desde
+ * el Calendario, vista de empresa), para eso recibe el perfil completo y
+ * no solo su id.
+ */
+async function cargarRegistroEditable(
+  profile: Profile,
+  entryId: string
+) {
   const db = createDbClient();
-  const { data: entry } = await db
+  let query = db
     .from("time_entries")
     .select("*")
     .eq("id", entryId)
-    .eq("user_id", profileId)
-    .not("hora_fin", "is", null)
-    .maybeSingle();
+    .not("hora_fin", "is", null);
+
+  if (profile.rol !== "admin") {
+    query = query.eq("user_id", profile.id);
+  }
+
+  const { data: entry } = await query.maybeSingle();
   return { db, entry };
 }
 
@@ -76,7 +90,7 @@ export async function actualizarRegistroAction(
     return { ok: false, error: "Un registro no puede durar más de 24 horas." };
   }
 
-  const { db, entry } = await cargarRegistroPropioFinalizado(profile.id, entryId);
+  const { db, entry } = await cargarRegistroEditable(profile, entryId);
   if (!entry) {
     return { ok: false, error: "Ese registro no existe o no se puede editar." };
   }
@@ -116,6 +130,7 @@ export async function actualizarRegistroAction(
 
   revalidatePath("/registros");
   revalidatePath("/dashboard");
+  revalidatePath("/calendario");
   return { ok: true };
 }
 
@@ -126,7 +141,7 @@ export async function borrarRegistroAction(
   const profile = await requireProfile();
   const entryId = String(formData.get("entryId") ?? "");
 
-  const { db, entry } = await cargarRegistroPropioFinalizado(profile.id, entryId);
+  const { db, entry } = await cargarRegistroEditable(profile, entryId);
   if (!entry) {
     return { ok: false, error: "Ese registro no existe o no se puede borrar." };
   }
@@ -139,5 +154,6 @@ export async function borrarRegistroAction(
 
   revalidatePath("/registros");
   revalidatePath("/dashboard");
+  revalidatePath("/calendario");
   return { ok: true };
 }
