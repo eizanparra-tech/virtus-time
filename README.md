@@ -2,7 +2,7 @@
 
 Aplicación de registro de horas para VIRTUS COMPANY (16 socios), inspirada en Clockify.
 
-Este README explica lo que ya está construido (**Fases 1 a 3**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, y gestión de proyectos, tareas y equipo. Las fases siguientes (dashboards y estadísticas, informes automáticos, calendario...) se construirán encima de esta base, una a una.
+Este README explica lo que ya está construido (**Fases 1 a 4**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, y estadísticas. Las fases siguientes (informes automáticos, calendario...) se construirán encima de esta base, una a una.
 
 ## Qué funciona ya de verdad
 
@@ -14,11 +14,12 @@ Este README explica lo que ya está construido (**Fases 1 a 3**): estructura del
 - **Proyectos**: crear proyectos (admin), ver el detalle de cada uno, editarlo y asignarle socios.
 - **Tareas**: crear tareas dentro de un proyecto, con responsable y fecha límite opcionales, cambiar su estado, y borrarlas (quien las creó o un administrador).
 - **Equipo**: dar de alta nuevos socios desde la web (sin que tengan que crear nada ellos), activar/desactivar cuentas y asignar el rol de administrador.
+- **Estadísticas**: horas por proyecto, por socio (vista de empresa para administradores) y su evolución día a día o semana a semana, con un selector de periodo (esta semana / este mes / últimas 12 semanas) y la comparativa frente al periodo anterior. Todo calculado al momento a partir de los registros reales, con gráficos de Recharts.
 - El menú lateral y la estructura visual de las 10 secciones de la aplicación (Dashboard, Cronómetro, Mis registros, Proyectos, Tareas, Equipo, Estadísticas, Informes semanales, Calendario, Configuración), adaptada a móvil.
 - **Instalable como app**: tiene icono y configuración para que, desde el móvil, cualquiera pueda pulsar "Añadir a pantalla de inicio" y usarla como una app normal, sin pasar por ninguna tienda de aplicaciones.
 - Un sistema de diseño propio (colores, tipografías, componentes) para que el resto de fases sean coherentes visualmente.
 
-Estadísticas, Informes semanales y Calendario todavía muestran una pantalla "Próximamente en la Fase X": la estructura y la navegación ya funcionan, pero la funcionalidad de cada una se construye en su fase correspondiente.
+Informes semanales y Calendario todavía muestran una pantalla "Próximamente en la Fase X": la estructura y la navegación ya funcionan, pero la funcionalidad de cada una se construye en su fase correspondiente.
 
 ### Sobre no usar contraseñas
 
@@ -105,7 +106,7 @@ public/
 | 1 | Base del proyecto, acceso por perfiles, base de datos | ✅ Hecho |
 | 2 | Cronómetro, registro manual, descripciones libres | ✅ Hecho |
 | 3 | Gestión de proyectos, tareas y equipo desde la web | ✅ Hecho |
-| 4 | Dashboards y estadísticas | Pendiente |
+| 4 | Dashboards y estadísticas | ✅ Hecho |
 | 5 | Informes automáticos semanales y conclusiones inteligentes | Pendiente |
 | 6 | Histórico, calendario y exportaciones | Pendiente |
 | 7 | Pruebas reales, seguridad y publicación | Pendiente |

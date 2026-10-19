@@ -38,3 +38,11 @@ export function semanaDe(fechaISO: string): { inicio: string; fin: string } {
   const fmt = (dt: Date) => dt.toISOString().slice(0, 10);
   return { inicio: fmt(lunes), fin: fmt(domingo) };
 }
+
+/** Suma (o resta, con un número negativo) días de calendario a una fecha YYYY-MM-DD. */
+export function addDias(fechaISO: string, dias: number): string {
+  const [y, m, d] = fechaISO.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + dias);
+  return dt.toISOString().slice(0, 10);
+}

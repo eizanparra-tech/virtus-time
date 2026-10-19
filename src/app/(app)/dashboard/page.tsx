@@ -48,15 +48,15 @@ const ACCESOS_RAPIDOS = [
     titulo: "Equipo",
     detalle: "Los socios de VIRTUS COMPANY.",
   },
+  {
+    href: "/estadisticas",
+    icon: BarChart3,
+    titulo: "Estadísticas",
+    detalle: "Horas por proyecto, por socio y su evolución.",
+  },
 ];
 
 const ROADMAP = [
-  {
-    icon: BarChart3,
-    fase: "Fase 4",
-    titulo: "Dashboards y estadísticas",
-    detalle: "Horas por proyecto, por socio, evolución semanal y comparativas.",
-  },
   {
     icon: FileBarChart,
     fase: "Fase 5",
@@ -103,30 +103,32 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title={`Hola, ${profile?.nombre ?? ""}`}
-        description="Cronómetro, proyectos, tareas y equipo ya funcionan de verdad: esto es la Fase 3 completa."
+        description="Cronómetro, proyectos, tareas, equipo y estadísticas ya funcionan de verdad: esto es la Fase 4 completa."
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-[1.2fr_1fr]">
-        <Card className="flex flex-col justify-center gap-1 p-6">
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
-            Esta semana
-          </p>
-          <p className="font-display text-3xl font-semibold tabular-nums text-ink">
-            {formatDuracionCorta(segundosSemana)}
-          </p>
-          <p className="text-sm text-ink-secondary">
-            {activo
-              ? "Tienes un cronómetro activo en este momento."
-              : "Sin cronómetro activo ahora mismo."}
-          </p>
-        </Card>
+        <Link href="/estadisticas">
+          <Card className="flex h-full flex-col justify-center gap-1 p-6 transition-colors hover:border-brand/40">
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
+              Esta semana
+            </p>
+            <p className="font-display text-3xl font-semibold tabular-nums text-ink">
+              {formatDuracionCorta(segundosSemana)}
+            </p>
+            <p className="text-sm text-ink-secondary">
+              {activo
+                ? "Tienes un cronómetro activo en este momento."
+                : "Sin cronómetro activo ahora mismo."}
+            </p>
+          </Card>
+        </Link>
         <Card className="flex flex-col justify-center gap-2 p-6">
           <div className="flex items-center gap-2 text-sm font-medium text-ink">
-            Fase 1, 2 y 3 funcionando
+            Fases 1 a 4 funcionando
           </div>
           <p className="text-sm text-ink-secondary">
-            Cronómetro, proyectos con socios asignados, tareas y gestión de
-            equipo listos para los 16 socios.
+            Cronómetro, proyectos, tareas, equipo y estadísticas reales
+            listos para los 16 socios.
           </p>
           {profile?.rol === "admin" && (
             <span className="mt-1 inline-flex w-fit shrink-0 rounded-sm bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
