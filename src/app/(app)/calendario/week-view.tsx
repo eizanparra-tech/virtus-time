@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { Minus, TrendingDown, TrendingUp, CheckSquare, Flag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn, formatDuracionCorta, formatDiaCorto } from "@/lib/utils";
 import { hrefCalendario, type VistaCalendario } from "./href";
@@ -11,11 +11,18 @@ export interface ProyectoDia {
   segundos: number;
 }
 
+export interface ItemDia {
+  id: string;
+  titulo: string;
+}
+
 export interface DiaSemana {
   fecha: string;
   esHoy: boolean;
   segundos: number;
   proyectos: ProyectoDia[];
+  tareas: ItemDia[];
+  fechasClave: ItemDia[];
 }
 
 export function WeekView({
@@ -56,7 +63,9 @@ export function WeekView({
                 </span>
               </div>
 
-              {dia.proyectos.length === 0 ? (
+              {dia.proyectos.length === 0 &&
+              dia.tareas.length === 0 &&
+              dia.fechasClave.length === 0 ? (
                 <p className="flex-1 text-sm text-ink-muted">Sin registros.</p>
               ) : (
                 <div className="flex flex-1 flex-wrap gap-2">
@@ -70,6 +79,24 @@ export function WeekView({
                         style={{ backgroundColor: p.color }}
                       />
                       {p.nombre} · {formatDuracionCorta(p.segundos)}
+                    </span>
+                  ))}
+                  {dia.tareas.map((t) => (
+                    <span
+                      key={`tarea-${t.id}`}
+                      className="inline-flex items-center gap-1.5 rounded-sm bg-warning-soft px-2 py-1 text-xs text-warning"
+                    >
+                      <CheckSquare className="h-3 w-3" />
+                      {t.titulo}
+                    </span>
+                  ))}
+                  {dia.fechasClave.map((f) => (
+                    <span
+                      key={`fecha-${f.id}`}
+                      className="inline-flex items-center gap-1.5 rounded-sm bg-accent-soft px-2 py-1 text-xs text-accent"
+                    >
+                      <Flag className="h-3 w-3" />
+                      {f.titulo}
                     </span>
                   ))}
                 </div>

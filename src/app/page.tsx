@@ -3,5 +3,5 @@ import { getSessionProfileId } from "@/lib/session";
 
 export default async function RootPage() {
   const profileId = await getSessionProfileId();
-  redirect(profileId ? "/dashboard" : "/login");
+  redirect(profileId ? "/inicio" : "/login");
 }

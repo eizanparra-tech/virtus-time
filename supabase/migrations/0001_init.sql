@@ -253,6 +253,26 @@ create table if not exists public.weekly_member_reports (
 create index if not exists idx_weekly_member_reports_report on public.weekly_member_reports (report_id);
 
 -- -----------------------------------------------------------------------------
+-- TABLA: key_dates ("fechas clave")
+-- Avisos sueltos sobre una fecha (una entrega, una reunión, un hito) que no
+-- son una tarea de nadie en concreto: solo una marca en el calendario,
+-- visible para toda la empresa (Fase 8).
+-- -----------------------------------------------------------------------------
+create table if not exists public.key_dates (
+  id uuid primary key default gen_random_uuid(),
+  titulo text not null,
+  descripcion text,
+  fecha date not null,
+  project_id uuid references public.projects (id) on delete set null,
+  created_by uuid references public.profiles (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_key_dates_fecha on public.key_dates (fecha);
+create index if not exists idx_key_dates_project on public.key_dates (project_id);
+
+-- -----------------------------------------------------------------------------
 -- FUNCIÓN AUXILIAR: updated_at automático
 -- -----------------------------------------------------------------------------
 create or replace function public.set_updated_at()
@@ -281,6 +301,10 @@ drop trigger if exists trg_time_entries_updated_at on public.time_entries;
 create trigger trg_time_entries_updated_at before update on public.time_entries
   for each row execute function public.set_updated_at();
 
+drop trigger if exists trg_key_dates_updated_at on public.key_dates;
+create trigger trg_key_dates_updated_at before update on public.key_dates
+  for each row execute function public.set_updated_at();
+
 -- =============================================================================
 -- ROW LEVEL SECURITY — activada, sin políticas (ver nota al principio del
 -- archivo). El servidor de Next.js accede con la clave service_role, que
@@ -298,6 +322,7 @@ alter table public.time_entry_history enable row level security;
 alter table public.weekly_reports enable row level security;
 alter table public.weekly_project_reports enable row level security;
 alter table public.weekly_member_reports enable row level security;
+alter table public.key_dates enable row level security;
 
 -- =============================================================================
 -- FIN DE LA MIGRACIÓN INICIAL

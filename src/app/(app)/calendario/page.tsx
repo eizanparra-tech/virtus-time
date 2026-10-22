@@ -8,7 +8,12 @@ import { PageHeader } from "@/components/layout/page-header";
 import { hrefCalendario, type Periodo, type VistaCalendario } from "./href";
 import { MonthGrid, type DiaCelda } from "./month-grid";
 import { WeekView, type DiaSemana } from "./week-view";
-import { DayView, type GrupoSocio } from "./day-view";
+import {
+  DayView,
+  type GrupoSocio,
+  type TareaDiaView,
+  type FechaClaveDiaView,
+} from "./day-view";
 import type { RegistroView } from "../registros/registro-row";
 
 const PERIODO_TABS: { value: Periodo; label: string }[] = [
@@ -111,8 +116,70 @@ export default async function CalendarioPage({
     entradasQuery = entradasQuery.eq("user_id", profile.id);
   }
 
-  const { data: entradasRaw } = await entradasQuery;
+  // Fase 8: además de las horas registradas, el calendario también muestra
+  // las tareas con fecha límite (filtradas igual que las horas: solo las
+  // mías, salvo que se esté viendo "toda la empresa") y las fechas clave
+  // (siempre de toda la empresa: no son de una persona, son un aviso para
+  // todos).
+  let tareasQuery = db
+    .from("tasks")
+    .select("id, project_id, titulo, estado, responsable_id, fecha_limite")
+    .not("fecha_limite", "is", null)
+    .gte("fecha_limite", consultaInicio)
+    .lte("fecha_limite", consultaFin);
+
+  if (vista === "mio") {
+    tareasQuery = tareasQuery.eq("responsable_id", profile.id);
+  }
+
+  const keyDatesQuery = db
+    .from("key_dates")
+    .select("id, titulo, descripcion, fecha, project_id")
+    .gte("fecha", consultaInicio)
+    .lte("fecha", consultaFin);
+
+  const [
+    { data: entradasRaw },
+    { data: tareasRaw },
+    { data: fechasClaveRaw },
+  ] = await Promise.all([entradasQuery, tareasQuery, keyDatesQuery]);
   const todas = entradasRaw ?? [];
+
+  const tareasPorDia = new Map<
+    string,
+    {
+      id: string;
+      titulo: string;
+      estado: TareaDiaView["estado"];
+      projectId: string;
+    }[]
+  >();
+  for (const t of tareasRaw ?? []) {
+    if (!t.fecha_limite) continue;
+    const lista = tareasPorDia.get(t.fecha_limite) ?? [];
+    lista.push({
+      id: t.id,
+      titulo: t.titulo,
+      estado: t.estado,
+      projectId: t.project_id,
+    });
+    tareasPorDia.set(t.fecha_limite, lista);
+  }
+
+  const fechasClavePorDia = new Map<
+    string,
+    { id: string; titulo: string; descripcion: string | null; projectId: string | null }[]
+  >();
+  for (const f of fechasClaveRaw ?? []) {
+    const lista = fechasClavePorDia.get(f.fecha) ?? [];
+    lista.push({
+      id: f.id,
+      titulo: f.titulo,
+      descripcion: f.descripcion,
+      projectId: f.project_id,
+    });
+    fechasClavePorDia.set(f.fecha, lista);
+  }
 
   // Agregados por día: segundos totales y desglose por proyecto, para la
   // rejilla del mes y la vista semana.
@@ -141,6 +208,8 @@ export default async function CalendarioPage({
   let totalAnterior = 0;
   let entradasDelDia: RegistroView[] = [];
   let gruposDelDia: GrupoSocio[] = [];
+  let tareasDelDia: TareaDiaView[] = [];
+  let fechasClaveDelDia: FechaClaveDiaView[] = [];
 
   if (periodo === "mes") {
     let cursor = rangoInicio;
@@ -160,6 +229,8 @@ export default async function CalendarioPage({
         esHoy: cursor === hoy,
         segundos: agregado?.segundos ?? 0,
         proyectos: proyectosDia,
+        tareasVencen: (tareasPorDia.get(cursor) ?? []).length,
+        fechasClave: (fechasClavePorDia.get(cursor) ?? []).length,
       });
       cursor = addDias(cursor, 1);
     }
@@ -181,6 +252,14 @@ export default async function CalendarioPage({
         esHoy: cursor === hoy,
         segundos: agregado?.segundos ?? 0,
         proyectos: proyectosDia,
+        tareas: (tareasPorDia.get(cursor) ?? []).map((t) => ({
+          id: t.id,
+          titulo: t.titulo,
+        })),
+        fechasClave: (fechasClavePorDia.get(cursor) ?? []).map((f) => ({
+          id: f.id,
+          titulo: f.titulo,
+        })),
       });
       totalSemana += agregado?.segundos ?? 0;
       cursor = addDias(cursor, 1);
@@ -237,6 +316,29 @@ export default async function CalendarioPage({
             a.entradas.reduce((acc, e) => acc + e.duracionSegundos, 0)
         );
     }
+
+    tareasDelDia = (tareasPorDia.get(fecha) ?? []).map((t) => ({
+      id: t.id,
+      titulo: t.titulo,
+      estado: t.estado,
+      proyecto: {
+        nombre: proyectoPorId.get(t.projectId)?.nombre ?? "Proyecto eliminado",
+        color: proyectoPorId.get(t.projectId)?.color ?? "#8893a3",
+      },
+    }));
+
+    fechasClaveDelDia = (fechasClavePorDia.get(fecha) ?? []).map((f) => ({
+      id: f.id,
+      titulo: f.titulo,
+      descripcion: f.descripcion,
+      proyecto: f.projectId
+        ? {
+            nombre:
+              proyectoPorId.get(f.projectId)?.nombre ?? "Proyecto eliminado",
+            color: proyectoPorId.get(f.projectId)?.color ?? "#8893a3",
+          }
+        : null,
+    }));
   }
 
   const tituloPeriodo =
@@ -254,7 +356,7 @@ export default async function CalendarioPage({
     <div className="space-y-6">
       <PageHeader
         title="Calendario"
-        description="El tiempo registrado, día a día, con un color para cada proyecto."
+        description="El tiempo registrado, las tareas con fecha límite y las fechas clave, día a día."
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -362,7 +464,14 @@ export default async function CalendarioPage({
       )}
 
       {periodo === "dia" && (
-        <DayView vista={vista} entradas={entradasDelDia} grupos={gruposDelDia} />
+        <DayView
+          vista={vista}
+          entradas={entradasDelDia}
+          grupos={gruposDelDia}
+          tareas={tareasDelDia}
+          fechasClave={fechasClaveDelDia}
+          fecha={fecha}
+        />
       )}
     </div>
   );

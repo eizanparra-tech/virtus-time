@@ -3,7 +3,6 @@ import {
   TimerIcon,
   ListChecks,
   FolderKanban,
-  CheckSquare,
   Users,
   BarChart3,
   FileBarChart,
@@ -37,12 +36,6 @@ const ACCESOS_RAPIDOS = [
     detalle: "Consulta y gestiona los proyectos.",
   },
   {
-    href: "/tareas",
-    icon: CheckSquare,
-    titulo: "Tareas",
-    detalle: "Qué hay pendiente en cada proyecto.",
-  },
-  {
     href: "/equipo",
     icon: Users,
     titulo: "Equipo",
@@ -59,12 +52,6 @@ const ACCESOS_RAPIDOS = [
     icon: FileBarChart,
     titulo: "Informes semanales",
     detalle: "El análisis automático de cada semana, con conclusiones de IA.",
-  },
-  {
-    href: "/calendario",
-    icon: CalendarDays,
-    titulo: "Calendario",
-    detalle: "El tiempo registrado día a día, con exportación a CSV y Excel.",
   },
 ];
 
@@ -101,7 +88,7 @@ export default async function DashboardPage() {
     <div>
       <PageHeader
         title={`Hola, ${profile?.nombre ?? ""}`}
-        description="Cronómetro, proyectos, tareas, equipo, estadísticas, informes semanales y calendario ya funcionan de verdad: esto es la Fase 7, la última del plan inicial."
+        description="Esto es el modo Reloj: cronómetro, proyectos, equipo, estadísticas e informes semanales. Las tareas, el calendario y las fechas clave viven en el modo Calendario — cambia con el icono de arriba en el menú."
       />
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-[1.2fr_1fr]">
@@ -122,11 +109,11 @@ export default async function DashboardPage() {
         </Link>
         <Card className="flex flex-col justify-center gap-2 p-6">
           <div className="flex items-center gap-2 text-sm font-medium text-ink">
-            Fases 1 a 7 funcionando
+            Fases 1 a 8 funcionando
           </div>
           <p className="text-sm text-ink-secondary">
-            Cronómetro, proyectos, tareas, equipo, estadísticas, informes
-            semanales y calendario reales, listos para los 16 socios.
+            Modo reloj y modo calendario, con tareas y fechas clave, listos
+            para los 16 socios.
           </p>
           {profile?.rol === "admin" && (
             <span className="mt-1 inline-flex w-fit shrink-0 rounded-sm bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
@@ -163,23 +150,42 @@ export default async function DashboardPage() {
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">
         Qué sigue
       </h2>
-      <Link href="/equipo">
-        <Card className="flex items-center gap-3 p-5 transition-colors hover:border-brand/40">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand/5 text-brand">
-            <Users className="h-4 w-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-display text-base font-semibold text-ink">
-              Pruébalo con el equipo
-            </p>
-            <p className="mt-1 text-sm text-ink-secondary">
-              Añade a los 16 socios desde Equipo y que cada uno use el
-              cronómetro un día cualquiera: es la mejor prueba real.
-            </p>
-          </div>
-          <ArrowRight className="h-4 w-4 shrink-0 text-ink-muted" />
-        </Card>
-      </Link>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Link href="/equipo">
+          <Card className="flex h-full items-center gap-3 p-5 transition-colors hover:border-brand/40">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand/5 text-brand">
+              <Users className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-base font-semibold text-ink">
+                Pruébalo con el equipo
+              </p>
+              <p className="mt-1 text-sm text-ink-secondary">
+                Añade a los 16 socios desde Equipo y que cada uno use el
+                cronómetro un día cualquiera: es la mejor prueba real.
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-ink-muted" />
+          </Card>
+        </Link>
+        <Link href="/calendario">
+          <Card className="flex h-full items-center gap-3 p-5 transition-colors hover:border-brand/40">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand/5 text-brand">
+              <CalendarDays className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-base font-semibold text-ink">
+                Tareas y calendario, en su propio modo
+              </p>
+              <p className="mt-1 text-sm text-ink-secondary">
+                Ahí viven ahora el calendario, las tareas de cada proyecto y
+                las fechas clave de la empresa.
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-ink-muted" />
+          </Card>
+        </Link>
+      </div>
     </div>
   );
 }

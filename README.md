@@ -2,13 +2,14 @@
 
 Aplicación de registro de horas para VIRTUS COMPANY (16 socios), inspirada en Clockify.
 
-Este README explica lo que ya está construido (**Fases 1 a 7, todo el plan inicial**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas, informes semanales automáticos, calendario, exportaciones y un repaso de seguridad. Lo único que queda es que el equipo la use de verdad (ver "Antes de usarla con todo el equipo" más abajo).
+Este README explica lo que ya está construido (**Fases 1 a 8**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas, informes semanales automáticos, calendario, exportaciones, un repaso de seguridad y, desde la Fase 8, los dos modos de la aplicación (Reloj y Calendario) con las fechas clave. Lo único que queda es que el equipo la use de verdad (ver "Antes de usarla con todo el equipo" más abajo).
 
 ## Qué funciona ya de verdad
 
 - Proyecto Next.js 16 + TypeScript + Tailwind CSS v4, desplegado en Vercel.
 - Conexión a Supabase (solo como base de datos PostgreSQL; no se usan contraseñas).
 - **Entrada por perfiles, sin contraseñas**: una pantalla con el nombre de cada socio; tocas el tuyo y entras. Un asistente de configuración inicial (`/setup`) crea el primer perfil (administrador), y solo funciona una vez.
+- **Dos modos, elegidos desde /inicio** (Fase 8): justo después de elegir tu perfil (y cada vez que vuelves a entrar) ves dos logos grandes. **Reloj** abre la aplicación de toda la vida: cronómetro, mis registros, proyectos, equipo, estadísticas, informes semanales y configuración. **Calendario** abre el calendario, las tareas y las fechas clave. Para cambiar de uno a otro sin volver a `/inicio`, hay un pequeño interruptor arriba del menú lateral con los dos mismos iconos.
 - **Cronómetro**: elegir proyecto, escribir en qué trabajas (obligatorio), iniciar/pausar/reanudar/finalizar; el tiempo se calcula siempre a partir de una hora real guardada en el servidor, nunca inventado en el navegador. Solo puede haber un cronómetro activo por socio.
 - **Registro manual de horas** y **Mis registros**: historial propio por día, con edición (descripción, fecha, duración) y borrado, guardando el historial de cambios.
 - **Proyectos**: crear proyectos (admin), ver el detalle de cada uno, editarlo y asignarle socios.
@@ -16,9 +17,10 @@ Este README explica lo que ya está construido (**Fases 1 a 7, todo el plan inic
 - **Equipo**: dar de alta nuevos socios desde la web (sin que tengan que crear nada ellos), activar/desactivar cuentas y asignar el rol de administrador.
 - **Estadísticas**: horas por proyecto, por socio (vista de empresa para administradores) y su evolución día a día o semana a semana, con un selector de periodo (esta semana / este mes / últimas 12 semanas) y la comparativa frente al periodo anterior. Todo calculado al momento a partir de los registros reales, con gráficos de Recharts.
 - **Informes semanales**: cada lunes de madrugada se genera automáticamente (tarea programada en Vercel) el informe de la semana que acaba de terminar, con las horas reales por proyecto y por socio, y quién no registró nada. Un resumen escrito por IA describe esos mismos números en un párrafo, sin inventar causas ni juicios; si no hay clave de IA configurada, el informe se genera igual, solo que sin ese párrafo. Un administrador también puede generarlo o recalcularlo a mano desde la propia página. También se puede **exportar cualquier informe a PDF**.
-- **Calendario**: el tiempo registrado en tres vistas (día, semana, mes), con un color distinto para cada proyecto; en la vista mes cada día muestra una mini barra de colores proporcional a las horas de cada proyecto. La vista semana compara el total con la semana anterior. Los administradores pueden ver el calendario de toda la empresa, no solo el suyo, y **corregir o borrar el registro de cualquier socio** desde ahí (no solo los propios). Desde cualquier vista se puede **exportar los registros del periodo a CSV o a Excel**.
+- **Calendario**: el tiempo registrado en tres vistas (día, semana, mes), con un color distinto para cada proyecto; en la vista mes cada día muestra una mini barra de colores proporcional a las horas de cada proyecto. La vista semana compara el total con la semana anterior. Los administradores pueden ver el calendario de toda la empresa, no solo el suyo, y **corregir o borrar el registro de cualquier socio** desde ahí (no solo los propios). Desde cualquier vista se puede **exportar los registros del periodo a CSV o a Excel**. Desde la Fase 8, el calendario también marca los días con **tareas que vencen** y con **fechas clave** (ver siguiente punto).
+- **Fechas clave** (Fase 8): avisos sueltos sobre una fecha importante — una entrega, una reunión, un hito — que no son una tarea de nadie en concreto, solo una marca en el calendario visible para toda la empresa. Cualquier socio puede añadir una (con un título, una fecha y, si quiere, un proyecto relacionado y una descripción); solo quien la creó o un administrador puede borrarla.
 - **Panel de informes en Configuración** (solo administradores): el estado del último informe semanal generado, con enlace directo a verlo.
-- El menú lateral y la estructura visual de las 10 secciones de la aplicación (Dashboard, Cronómetro, Mis registros, Proyectos, Tareas, Equipo, Estadísticas, Informes semanales, Calendario, Configuración), adaptada a móvil.
+- El menú lateral y la estructura visual de las 11 secciones de la aplicación, repartidas en dos modos (Reloj: Dashboard, Cronómetro, Mis registros, Proyectos, Equipo, Estadísticas, Informes semanales, Configuración — Calendario: Calendario, Tareas, Fechas clave), adaptada a móvil.
 - **Instalable como app**: tiene icono y configuración para que, desde el móvil, cualquiera pueda pulsar "Añadir a pantalla de inicio" y usarla como una app normal, sin pasar por ninguna tienda de aplicaciones. Respeta la zona del notch/barra de estado en los dispositivos que la tienen.
 - Un sistema de diseño propio (colores, tipografías, componentes) para que toda la aplicación sea coherente visualmente.
 
@@ -34,6 +36,10 @@ Antes de dar la aplicación por terminada se ha hecho un repaso completo:
 - Se corrigió un enlace de inicio de sesión que, manipulado a mano, podía acabar redirigiendo fuera de la aplicación.
 - Se ha revisado que cada acción que cambia datos (crear, editar, borrar, cambiar roles...) comprueba en el servidor quién la pide — nunca solo si el botón se ve o no en la pantalla — y que ninguna clave secreta llega nunca al navegador.
 - Se ha añadido `robots.txt` para que los buscadores no indexen la aplicación (es privada, de uso interno).
+
+### Importante: vuelve a ejecutar la migración SQL (Fase 8)
+
+La Fase 8 añade una tabla nueva (`key_dates`, para las fechas clave). Antes de usarla, entra en el **SQL Editor** de tu proyecto de Supabase, pega de nuevo el contenido completo de [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql) y pulsa "Run". Es seguro repetirlo aunque ya lo hubieras ejecutado antes: todo el archivo está escrito para no duplicar ni borrar nada que ya exista, solo añade lo que falte.
 
 ### Antes de usarla con todo el equipo
 
@@ -101,6 +107,7 @@ src/
   app/
     (auth)/login/        Pantalla "¿Quién eres?" (elegir perfil)
     (auth)/setup/        Configuración inicial (primer perfil)
+    (hub)/inicio/         Pantalla "¿qué modo abro?" (Reloj / Calendario)
     (app)/                Aplicación con sesión iniciada (menú lateral + páginas)
   components/
     ui/                   Botones, tarjetas, campos de formulario, etc.
@@ -129,3 +136,4 @@ public/
 | 5 | Informes automáticos semanales y conclusiones inteligentes | ✅ Hecho |
 | 6 | Histórico, calendario y exportaciones | ✅ Hecho |
 | 7 | Pruebas reales, seguridad y publicación | ✅ Hecho (código); la prueba con el equipo la hacéis vosotros |
+| 8 | Dos modos de la aplicación (Reloj / Calendario) y fechas clave | ✅ Hecho (código); recuerda volver a ejecutar la migración SQL |

@@ -41,5 +41,5 @@ export async function bootstrapAdminAction(formData: FormData) {
 
   await db.from("app_settings").update({ setup_completed: true }).eq("id", true);
   await createSessionCookie(profile.id);
-  redirect("/dashboard");
+  redirect("/inicio");
 }

@@ -51,7 +51,7 @@ export default async function LoginPage({
               <input
                 type="hidden"
                 name="redirectTo"
-                value={redirectTo || "/dashboard"}
+                value={redirectTo || "/inicio"}
               />
               <button
                 type="submit"

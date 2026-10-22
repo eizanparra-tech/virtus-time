@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CheckSquare, Flag } from "lucide-react";
 import { cn, formatDuracionCorta } from "@/lib/utils";
 import { hrefCalendario, type VistaCalendario } from "./href";
 
@@ -8,6 +9,8 @@ export interface DiaCelda {
   esHoy: boolean;
   segundos: number;
   proyectos: { id: string; color: string; segundos: number }[];
+  tareasVencen: number;
+  fechasClave: number;
 }
 
 const DIAS_SEMANA = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -50,6 +53,23 @@ export function MonthGrid({
             >
               {Number(dia.fecha.slice(-2))}
             </span>
+
+            {(dia.tareasVencen > 0 || dia.fechasClave > 0) && (
+              <div className="flex items-center gap-1.5 text-[10px] font-medium text-ink-muted">
+                {dia.tareasVencen > 0 && (
+                  <span className="inline-flex items-center gap-0.5">
+                    <CheckSquare className="h-2.5 w-2.5" />
+                    {dia.tareasVencen}
+                  </span>
+                )}
+                {dia.fechasClave > 0 && (
+                  <span className="inline-flex items-center gap-0.5 text-accent">
+                    <Flag className="h-2.5 w-2.5" />
+                    {dia.fechasClave}
+                  </span>
+                )}
+              </div>
+            )}
 
             {dia.segundos > 0 && (
               <>

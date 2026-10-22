@@ -170,6 +170,23 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["weekly_project_reports"]["Row"]>;
       } & NoRelationships;
+      key_dates: {
+        Row: {
+          id: string;
+          titulo: string;
+          descripcion: string | null;
+          fecha: string;
+          project_id: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["key_dates"]["Row"]> & {
+          titulo: string;
+          fecha: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["key_dates"]["Row"]>;
+      } & NoRelationships;
       weekly_member_reports: {
         Row: {
           id: string;
@@ -204,4 +221,5 @@ export type TimeEntryHistory = Database["public"]["Tables"]["time_entry_history"
 export type WeeklyReport = Database["public"]["Tables"]["weekly_reports"]["Row"];
 export type WeeklyProjectReport = Database["public"]["Tables"]["weekly_project_reports"]["Row"];
 export type WeeklyMemberReport = Database["public"]["Tables"]["weekly_member_reports"]["Row"];
+export type KeyDate = Database["public"]["Tables"]["key_dates"]["Row"];
 export type AppSettings = Database["public"]["Tables"]["app_settings"]["Row"];
