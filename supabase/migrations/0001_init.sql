@@ -63,6 +63,7 @@ create table if not exists public.app_settings (
   company_name text not null default 'VIRTUS COMPANY',
   week_start_day text not null default 'monday',
   timezone text not null default 'Europe/Madrid',
+  coste_hora_eur numeric(10,2) not null default 10,
   updated_at timestamptz not null default now(),
   constraint app_settings_singleton check (id)
 );
@@ -70,6 +71,12 @@ create table if not exists public.app_settings (
 insert into public.app_settings (id, setup_completed)
 values (true, false)
 on conflict (id) do nothing;
+
+-- Fase 10: en una base de datos que ya existía antes de esta fase, la tabla
+-- de arriba no se vuelve a crear (CREATE TABLE IF NOT EXISTS no toca una
+-- tabla que ya existe), así que la columna nueva se añade aquí a mano.
+-- Seguro de repetir: si ya existe, no hace nada.
+alter table public.app_settings add column if not exists coste_hora_eur numeric(10,2) not null default 10;
 
 -- -----------------------------------------------------------------------------
 -- TABLA: profiles

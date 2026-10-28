@@ -3,7 +3,7 @@ import { TrendingUp, TrendingDown, Minus, Users } from "lucide-react";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
 import { todayMadrid, semanaDe, addDias } from "@/lib/dates";
-import { formatDuracionCorta, cn } from "@/lib/utils";
+import { formatDuracionCorta, formatEuros, cn } from "@/lib/utils";
 import {
   Card,
   CardHeader,
@@ -125,12 +125,17 @@ export default async function EstadisticasPage({
     entradasQuery = entradasQuery.eq("user_id", profile.id);
   }
 
-  const [{ data: entradas }, { data: proyectos }, { data: socios }] =
+  const [{ data: entradas }, { data: proyectos }, { data: socios }, { data: ajustes }] =
     await Promise.all([
       entradasQuery,
       db.from("projects").select("id, nombre, color"),
       db.from("profiles").select("id, nombre, apellidos").eq("activo", true),
+      esAdmin
+        ? db.from("app_settings").select("coste_hora_eur").eq("id", true).maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
+
+  const costeHoraEur = ajustes?.coste_hora_eur ?? null;
 
   const filas = entradas ?? [];
   const proyectoPorId = new Map((proyectos ?? []).map((p) => [p.id, p]));
@@ -262,6 +267,11 @@ export default async function EstadisticasPage({
           <p className="font-display text-3xl font-semibold tabular-nums text-ink">
             {formatDuracionCorta(totalActual)}
           </p>
+          {costeHoraEur !== null && (
+            <p className="text-sm text-ink-secondary">
+              ≈ {formatEuros((totalActual / 3600) * costeHoraEur)} a {formatEuros(costeHoraEur)}/h
+            </p>
+          )}
           <div className="flex items-center gap-1.5 text-sm text-ink-secondary">
             {cambioPct === null ? (
               <>

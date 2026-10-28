@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileBarChart } from "lucide-react";
+import { FileBarChart, Coins } from "lucide-react";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
 import { formatFecha, formatFechaHora } from "@/lib/utils";
@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProfileForm } from "./profile-form";
+import { TarifaForm } from "./tarifa-form";
 import type { ReportStatus } from "@/types/database.types";
 
 const ESTADO_LABEL: Record<ReportStatus, string> = {
@@ -25,14 +26,21 @@ export default async function ConfiguracionPage() {
   const profile = await requireProfile();
   const esAdmin = profile.rol === "admin";
 
-  const { data: ultimoInforme } = esAdmin
-    ? await createDbClient()
-        .from("weekly_reports")
-        .select("id, semana_inicio, semana_fin, status, generated_at, regenerated_at")
-        .order("semana_inicio", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-    : { data: null };
+  const [{ data: ultimoInforme }, { data: ajustes }] = esAdmin
+    ? await Promise.all([
+        createDbClient()
+          .from("weekly_reports")
+          .select("id, semana_inicio, semana_fin, status, generated_at, regenerated_at")
+          .order("semana_inicio", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        createDbClient()
+          .from("app_settings")
+          .select("coste_hora_eur")
+          .eq("id", true)
+          .maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
 
   return (
     <div className="space-y-6">
@@ -51,6 +59,26 @@ export default async function ConfiguracionPage() {
           <ProfileForm profile={profile} />
         </CardContent>
       </Card>
+
+      {esAdmin && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Coins className="h-4 w-4 text-brand" />
+              <div>
+                <CardTitle>Coste por hora</CardTitle>
+                <CardDescription>
+                  Tarifa única de la empresa, usada para estimar el coste de
+                  las horas en Estadísticas y en Proyectos.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <TarifaForm costeHoraEur={ajustes?.coste_hora_eur ?? 10} />
+          </CardContent>
+        </Card>
+      )}
 
       {esAdmin && (
         <Card>

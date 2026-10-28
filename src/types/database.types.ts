@@ -27,6 +27,7 @@ export interface Database {
           company_name: string;
           week_start_day: string;
           timezone: string;
+          coste_hora_eur: number;
           updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;

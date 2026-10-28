@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckSquare } from "lucide-react";
+import { ArrowLeft, CheckSquare, Coins } from "lucide-react";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
+import { formatDuracionCorta, formatEuros } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   Card,
@@ -49,23 +50,44 @@ export default async function ProyectoDetallePage({
     notFound();
   }
 
-  const [{ data: miembrosRows }, { data: todosSocios }, { count: tareasCount }] =
-    await Promise.all([
-      db.from("project_members").select("user_id").eq("project_id", id),
-      db
-        .from("profiles")
-        .select("id, nombre, apellidos, rol, activo")
-        .order("nombre"),
-      db
-        .from("tasks")
-        .select("id", { count: "exact", head: true })
-        .eq("project_id", id),
-    ]);
+  const esAdmin = profile.rol === "admin";
+
+  const [
+    { data: miembrosRows },
+    { data: todosSocios },
+    { count: tareasCount },
+    { data: entradasProyecto },
+    { data: ajustes },
+  ] = await Promise.all([
+    db.from("project_members").select("user_id").eq("project_id", id),
+    db
+      .from("profiles")
+      .select("id, nombre, apellidos, rol, activo")
+      .order("nombre"),
+    db
+      .from("tasks")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", id),
+    db
+      .from("time_entries")
+      .select("duracion_segundos")
+      .eq("project_id", id)
+      .not("hora_fin", "is", null),
+    esAdmin
+      ? db.from("app_settings").select("coste_hora_eur").eq("id", true).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   const idsMiembros = new Set((miembrosRows ?? []).map((m) => m.user_id));
   const socios = todosSocios ?? [];
   const miembros = socios.filter((s) => idsMiembros.has(s.id));
   const disponibles = socios.filter((s) => !idsMiembros.has(s.id) && s.activo);
+
+  const segundosTotales = (entradasProyecto ?? []).reduce(
+    (acc, e) => acc + e.duracion_segundos,
+    0
+  );
+  const costeHoraEur = ajustes?.coste_hora_eur ?? null;
 
   return (
     <div className="space-y-6">
@@ -87,7 +109,7 @@ export default async function ProyectoDetallePage({
         }
       />
 
-      {profile.rol === "admin" && (
+      {esAdmin && (
         <Card>
           <CardHeader>
             <div>
@@ -115,7 +137,7 @@ export default async function ProyectoDetallePage({
           </div>
         </CardHeader>
         <CardContent>
-          {profile.rol === "admin" ? (
+          {esAdmin ? (
             <MembersManager
               projectId={project.id}
               miembros={miembros}
@@ -158,6 +180,23 @@ export default async function ProyectoDetallePage({
           Ver tareas
         </Link>
       </Card>
+
+      {costeHoraEur !== null && (
+        <Card className="flex items-center gap-3 p-5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-brand/5 text-brand">
+            <Coins className="h-4 w-4" />
+          </span>
+          <div>
+            <p className="text-sm font-medium text-ink">
+              {formatDuracionCorta(segundosTotales)} registradas ·{" "}
+              {formatEuros((segundosTotales / 3600) * costeHoraEur)}
+            </p>
+            <p className="text-sm text-ink-secondary">
+              Coste estimado a {formatEuros(costeHoraEur)}/hora
+            </p>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

@@ -54,6 +54,16 @@ export function formatFechaHora(isoTimestamp: string): string {
   });
 }
 
+/** "1.234,50 €", a partir de una cantidad en euros. */
+export function formatEuros(cantidad: number): string {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(cantidad);
+}
+
 /** "14:05" (24 horas, Europe/Madrid), para mostrar una hora o rellenar un <input type="time">. */
 export function horaInputValue(isoTimestamp: string): string {
   return new Intl.DateTimeFormat("en-GB", {

@@ -2,7 +2,7 @@
 
 Aplicación de registro de horas para VIRTUS COMPANY (16 socios), inspirada en Clockify.
 
-Este README explica lo que ya está construido (**Fases 1 a 9**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas, informes semanales automáticos, calendario, exportaciones, un repaso de seguridad, los dos modos de la aplicación (Reloj y Calendario) con las fechas clave, y la hora de inicio/pausa del cronómetro. Lo único que queda es que el equipo la use de verdad (ver "Antes de usarla con todo el equipo" más abajo).
+Este README explica lo que ya está construido (**Fases 1 a 10**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas, informes semanales automáticos, calendario, exportaciones, un repaso de seguridad, los dos modos de la aplicación (Reloj y Calendario) con las fechas clave, la hora de inicio/pausa del cronómetro, y el coste por hora. Lo único que queda es que el equipo la use de verdad (ver "Antes de usarla con todo el equipo" más abajo).
 
 ## Qué funciona ya de verdad
 
@@ -15,11 +15,13 @@ Este README explica lo que ya está construido (**Fases 1 a 9**): estructura del
 - **Proyectos**: crear proyectos (admin), ver el detalle de cada uno, editarlo y asignarle socios.
 - **Tareas**: crear tareas dentro de un proyecto, con responsable y fecha límite opcionales, cambiar su estado, y borrarlas (quien las creó o un administrador).
 - **Equipo**: dar de alta nuevos socios desde la web (sin que tengan que crear nada ellos), activar/desactivar cuentas y asignar el rol de administrador.
-- **Estadísticas**: horas por proyecto, por socio (vista de empresa para administradores) y su evolución día a día o semana a semana, con un selector de periodo (esta semana / este mes / últimas 12 semanas) y la comparativa frente al periodo anterior. Todo calculado al momento a partir de los registros reales, con gráficos de Recharts.
+- **Estadísticas**: horas por proyecto, por socio (vista de empresa para administradores) y su evolución día a día o semana a semana, con un selector de periodo (esta semana / este mes / últimas 12 semanas) y la comparativa frente al periodo anterior. Todo calculado al momento a partir de los registros reales, con gráficos de Recharts. Los administradores ven además el **coste estimado** del total del periodo (Fase 10).
+- **Coste por hora** (Fase 10): una tarifa única para toda la empresa (10 €/hora al activarla), editable por un administrador desde Configuración. Se usa para mostrar el coste estimado (horas × tarifa) en Estadísticas y en el detalle de cada proyecto; no afecta a ningún cálculo de horas, solo es una lectura adicional.
 - **Informes semanales**: cada lunes de madrugada se genera automáticamente (tarea programada en Vercel) el informe de la semana que acaba de terminar, con las horas reales por proyecto y por socio, y quién no registró nada. Un resumen escrito por IA describe esos mismos números en un párrafo, sin inventar causas ni juicios; si no hay clave de IA configurada, el informe se genera igual, solo que sin ese párrafo. Un administrador también puede generarlo o recalcularlo a mano desde la propia página. También se puede **exportar cualquier informe a PDF**.
 - **Calendario**: el tiempo registrado en tres vistas (día, semana, mes), con un color distinto para cada proyecto; en la vista mes cada día muestra una mini barra de colores proporcional a las horas de cada proyecto. La vista semana compara el total con la semana anterior. Los administradores pueden ver el calendario de toda la empresa, no solo el suyo, y **corregir o borrar el registro de cualquier socio** desde ahí (no solo los propios). Desde cualquier vista se puede **exportar los registros del periodo a CSV o a Excel**. Desde la Fase 8, el calendario también marca los días con **tareas que vencen** y con **fechas clave** (ver siguiente punto).
 - **Fechas clave** (Fase 8): avisos sueltos sobre una fecha importante — una entrega, una reunión, un hito — que no son una tarea de nadie en concreto, solo una marca en el calendario visible para toda la empresa. Cualquier socio puede añadir una (con un título, una fecha y, si quiere, un proyecto relacionado y una descripción); solo quien la creó o un administrador puede borrarla.
 - **Panel de informes en Configuración** (solo administradores): el estado del último informe semanal generado, con enlace directo a verlo.
+- **Tarifa por hora en Configuración** (solo administradores, Fase 10): cambiar en cualquier momento los euros/hora usados para el coste estimado.
 - El menú lateral y la estructura visual de las 11 secciones de la aplicación, repartidas en dos modos (Reloj: Dashboard, Cronómetro, Mis registros, Proyectos, Equipo, Estadísticas, Informes semanales, Configuración — Calendario: Calendario, Tareas, Fechas clave), adaptada a móvil.
 - **Instalable como app**: tiene icono y configuración para que, desde el móvil, cualquiera pueda pulsar "Añadir a pantalla de inicio" y usarla como una app normal, sin pasar por ninguna tienda de aplicaciones. Respeta la zona del notch/barra de estado en los dispositivos que la tienen.
 - Un sistema de diseño propio (colores, tipografías, componentes) para que toda la aplicación sea coherente visualmente.
@@ -37,9 +39,9 @@ Antes de dar la aplicación por terminada se ha hecho un repaso completo:
 - Se ha revisado que cada acción que cambia datos (crear, editar, borrar, cambiar roles...) comprueba en el servidor quién la pide — nunca solo si el botón se ve o no en la pantalla — y que ninguna clave secreta llega nunca al navegador.
 - Se ha añadido `robots.txt` para que los buscadores no indexen la aplicación (es privada, de uso interno).
 
-### Importante: vuelve a ejecutar la migración SQL (Fases 8 y 9)
+### Importante: vuelve a ejecutar la migración SQL (Fases 8, 9 y 10)
 
-La Fase 8 añadió una tabla nueva (`key_dates`, para las fechas clave) y la Fase 9 añade una columna nueva (`paused_at`, la hora de pausa del cronómetro). Antes de usarlas, entra en el **SQL Editor** de tu proyecto de Supabase, pega de nuevo el contenido completo de [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql) y pulsa "Run". Es seguro repetirlo aunque ya lo hubieras ejecutado antes: todo el archivo está escrito para no duplicar ni borrar nada que ya exista, solo añade lo que falte.
+La Fase 8 añadió una tabla nueva (`key_dates`, para las fechas clave), la Fase 9 añadió una columna nueva (`paused_at`, la hora de pausa del cronómetro) y la Fase 10 añade otra columna (`coste_hora_eur`, la tarifa por hora, con 10 € de valor inicial). Antes de usarlas, entra en el **SQL Editor** de tu proyecto de Supabase, pega de nuevo el contenido completo de [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql) y pulsa "Run". Es seguro repetirlo aunque ya lo hubieras ejecutado antes: todo el archivo está escrito para no duplicar ni borrar nada que ya exista, solo añade lo que falte.
 
 ### Antes de usarla con todo el equipo
 
@@ -138,3 +140,4 @@ public/
 | 7 | Pruebas reales, seguridad y publicación | ✅ Hecho (código); la prueba con el equipo la hacéis vosotros |
 | 8 | Dos modos de la aplicación (Reloj / Calendario) y fechas clave | ✅ Hecho (código); recuerda volver a ejecutar la migración SQL |
 | 9 | Hora de inicio editable y hora de pausa en el cronómetro | ✅ Hecho (código); recuerda volver a ejecutar la migración SQL |
+| 10 | Coste por hora (tarifa única, editable, con coste estimado en Estadísticas y Proyectos) | ✅ Hecho (código); recuerda volver a ejecutar la migración SQL |
