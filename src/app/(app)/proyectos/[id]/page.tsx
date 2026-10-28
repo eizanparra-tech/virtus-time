@@ -73,9 +73,7 @@ export default async function ProyectoDetallePage({
       .select("duracion_segundos")
       .eq("project_id", id)
       .not("hora_fin", "is", null),
-    esAdmin
-      ? db.from("app_settings").select("coste_hora_eur").eq("id", true).maybeSingle()
-      : Promise.resolve({ data: null }),
+    db.from("app_settings").select("coste_hora_eur").eq("id", true).maybeSingle(),
   ]);
 
   const idsMiembros = new Set((miembrosRows ?? []).map((m) => m.user_id));

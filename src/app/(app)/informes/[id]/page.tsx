@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Sparkles, Info, Download } from "lucide-react";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
-import { formatDuracionCorta, formatFecha } from "@/lib/utils";
+import { formatDuracionCorta, formatFecha, formatEuros } from "@/lib/utils";
 import {
   Card,
   CardHeader,
@@ -20,6 +20,8 @@ interface PorProyecto {
   project_id: string;
   nombre: string;
   segundos: number;
+  // Los informes generados antes de esta función no tienen este campo.
+  facturable?: boolean;
 }
 
 interface PorSocio {
@@ -37,6 +39,10 @@ interface ResumenGeneral {
   por_proyecto: PorProyecto[];
   por_socio: PorSocio[];
   socios_sin_actividad: string[];
+  // Los informes generados antes de esta función no tienen estos campos.
+  segundos_facturables?: number;
+  segundos_no_facturables?: number;
+  coste_hora_eur?: number | null;
 }
 
 interface Conclusiones {
@@ -146,6 +152,22 @@ export default async function InformeDetallePage({
               socios registraron algo, en {resumen.total_proyectos_con_actividad}{" "}
               proyecto{resumen.total_proyectos_con_actividad === 1 ? "" : "s"}.
             </p>
+            {resumen.segundos_facturables !== undefined && (
+              <p className="text-xs text-ink-muted">
+                Facturable: {formatDuracionCorta(resumen.segundos_facturables)}
+                {resumen.coste_hora_eur != null &&
+                  ` (${formatEuros(
+                    (resumen.segundos_facturables / 3600) * resumen.coste_hora_eur
+                  )})`}{" "}
+                · No facturable:{" "}
+                {formatDuracionCorta(resumen.segundos_no_facturables ?? 0)}
+                {resumen.coste_hora_eur != null &&
+                  ` (${formatEuros(
+                    ((resumen.segundos_no_facturables ?? 0) / 3600) *
+                      resumen.coste_hora_eur
+                  )})`}
+              </p>
+            )}
           </Card>
 
           <Card>
@@ -197,7 +219,12 @@ export default async function InformeDetallePage({
                       key={p.project_id}
                       className="flex items-center justify-between text-sm"
                     >
-                      <span className="text-ink">{p.nombre}</span>
+                      <span className="flex items-center gap-2 text-ink">
+                        {p.nombre}
+                        {p.facturable === false && (
+                          <Badge tone="neutral">No facturable</Badge>
+                        )}
+                      </span>
                       <span className="tabular-nums text-ink-secondary">
                         {formatDuracionCorta(p.segundos)}
                       </span>

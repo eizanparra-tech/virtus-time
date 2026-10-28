@@ -130,9 +130,7 @@ export default async function EstadisticasPage({
       entradasQuery,
       db.from("projects").select("id, nombre, color, facturable"),
       db.from("profiles").select("id, nombre, apellidos").eq("activo", true),
-      esAdmin
-        ? db.from("app_settings").select("coste_hora_eur").eq("id", true).maybeSingle()
-        : Promise.resolve({ data: null }),
+      db.from("app_settings").select("coste_hora_eur").eq("id", true).maybeSingle(),
     ]);
 
   const costeHoraEur = ajustes?.coste_hora_eur ?? null;

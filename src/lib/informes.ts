@@ -27,6 +27,7 @@ interface PorProyecto {
   project_id: string;
   nombre: string;
   segundos: number;
+  facturable: boolean;
 }
 
 interface PorSocio {
@@ -44,6 +45,9 @@ interface ResumenGeneral {
   por_proyecto: PorProyecto[];
   por_socio: PorSocio[];
   socios_sin_actividad: string[];
+  segundos_facturables: number;
+  segundos_no_facturables: number;
+  coste_hora_eur: number | null;
 }
 
 const ANTHROPIC_MODEL = "claude-haiku-5-5";
@@ -93,10 +97,12 @@ export async function generarInformeSemanal(
       .gte("fecha", semanaInicio)
       .lte("fecha", semanaFin);
 
-    const [{ data: proyectos }, { data: socios }] = await Promise.all([
-      db.from("projects").select("id, nombre"),
-      db.from("profiles").select("id, nombre, apellidos").eq("activo", true),
-    ]);
+    const [{ data: proyectos }, { data: socios }, { data: ajustes }] =
+      await Promise.all([
+        db.from("projects").select("id, nombre, facturable"),
+        db.from("profiles").select("id, nombre, apellidos").eq("activo", true),
+        db.from("app_settings").select("coste_hora_eur").eq("id", true).maybeSingle(),
+      ]);
 
     const filas = entradas ?? [];
     const listaSocios = socios ?? [];
@@ -129,7 +135,16 @@ export async function generarInformeSemanal(
       project_id: projectId,
       nombre: proyectoPorId.get(projectId)?.nombre ?? "Proyecto eliminado",
       segundos,
+      // Si el proyecto se ha borrado, se cuenta como facturable (igual que
+      // en Estadísticas) para no perder horas del total facturable sin motivo.
+      facturable: proyectoPorId.get(projectId)?.facturable ?? true,
     }));
+
+    const segundosFacturables = porProyecto.reduce(
+      (acc, p) => acc + (p.facturable ? p.segundos : 0),
+      0
+    );
+    const segundosNoFacturables = totalSegundos - segundosFacturables;
 
     const porSocio: PorSocio[] = Array.from(porSocioAcumulado.entries()).map(
       ([userId, v]) => {
@@ -155,6 +170,9 @@ export async function generarInformeSemanal(
       por_proyecto: porProyecto,
       por_socio: porSocio,
       socios_sin_actividad: sociosSinActividad,
+      segundos_facturables: segundosFacturables,
+      segundos_no_facturables: segundosNoFacturables,
+      coste_hora_eur: ajustes?.coste_hora_eur ?? null,
     };
 
     const conclusiones = await generarConclusionesIA(

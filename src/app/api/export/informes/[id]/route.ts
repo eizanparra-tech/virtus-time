@@ -1,7 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
-import { formatDuracionCorta, formatFecha } from "@/lib/utils";
+import { formatDuracionCorta, formatFecha, formatEuros } from "@/lib/utils";
 
 // =============================================================================
 // Exporta a PDF un informe semanal ya generado (/informes/[id]), con los
@@ -13,6 +13,7 @@ interface PorProyecto {
   project_id: string;
   nombre: string;
   segundos: number;
+  facturable?: boolean;
 }
 
 interface PorSocio {
@@ -30,6 +31,9 @@ interface ResumenGeneral {
   por_proyecto: PorProyecto[];
   por_socio: PorSocio[];
   socios_sin_actividad: string[];
+  segundos_facturables?: number;
+  segundos_no_facturables?: number;
+  coste_hora_eur?: number | null;
 }
 
 interface Conclusiones {
@@ -152,8 +156,23 @@ export async function GET(
   });
   linea(
     `${resumen.total_socios_con_actividad} de ${resumen.total_socios} socios registraron algo, en ${resumen.total_proyectos_con_actividad} proyecto${resumen.total_proyectos_con_actividad === 1 ? "" : "s"}.`,
-    { tamano: 10.5, color: GRIS, espacio: 22 }
+    { tamano: 10.5, color: GRIS, espacio: resumen.segundos_facturables !== undefined ? 18 : 22 }
   );
+  if (resumen.segundos_facturables !== undefined) {
+    const noFacturables = resumen.segundos_no_facturables ?? 0;
+    const sufijoFacturable =
+      resumen.coste_hora_eur != null
+        ? ` (${formatEuros((resumen.segundos_facturables / 3600) * resumen.coste_hora_eur)})`
+        : "";
+    const sufijoNoFacturable =
+      resumen.coste_hora_eur != null
+        ? ` (${formatEuros((noFacturables / 3600) * resumen.coste_hora_eur)})`
+        : "";
+    linea(
+      `Facturable: ${formatDuracionCorta(resumen.segundos_facturables)}${sufijoFacturable}  ·  No facturable: ${formatDuracionCorta(noFacturables)}${sufijoNoFacturable}`,
+      { tamano: 10.5, color: GRIS, espacio: 22 }
+    );
+  }
 
   // --- Horas por proyecto ---
   linea("Horas por proyecto", { tamano: 13, font: fontBold, espacio: 18 });
@@ -161,7 +180,8 @@ export async function GET(
     linea("Ningún proyecto tuvo actividad esta semana.", { color: GRIS });
   } else {
     for (const p of porProyecto) {
-      linea(`${p.nombre}  —  ${formatDuracionCorta(p.segundos)}`);
+      const etiqueta = p.facturable === false ? "  (no facturable)" : "";
+      linea(`${p.nombre}${etiqueta}  —  ${formatDuracionCorta(p.segundos)}`);
     }
   }
   espacio(10);
