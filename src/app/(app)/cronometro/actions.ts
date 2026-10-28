@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createDbClient } from "@/lib/supabase/db";
 import { requireProfile } from "@/lib/session";
-import { todayMadrid, fechaManualComoHoraInicio } from "@/lib/dates";
+import {
+  todayMadrid,
+  fechaManualComoHoraInicio,
+  madridHoraAUtc,
+  fechaMadridDe,
+} from "@/lib/dates";
 
 // =============================================================================
 // Server Actions del cronómetro y del registro manual.
@@ -111,11 +116,13 @@ export async function pausarCronometroAction(
     Math.floor((Date.now() - new Date(entry.running_since).getTime()) / 1000)
   );
 
+  const ahora = new Date().toISOString();
   const { error } = await db
     .from("time_entries")
     .update({
       duracion_segundos: entry.duracion_segundos + transcurrido,
       running_since: null,
+      paused_at: ahora,
     })
     .eq("id", entry.id);
 
@@ -139,10 +146,78 @@ export async function reanudarCronometroAction(
 
   const { error } = await db
     .from("time_entries")
-    .update({ running_since: new Date().toISOString() })
+    .update({ running_since: new Date().toISOString(), paused_at: null })
     .eq("id", entry.id);
 
   if (error) return { ok: false, error: "No se ha podido reanudar." };
+
+  revalidatePath("/cronometro");
+  return { ok: true };
+}
+
+const HORA_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+/**
+ * Corrige la hora de inicio del cronómetro activo (en marcha o en pausa),
+ * para cuando alguien se ha olvidado de pulsar "iniciar" pero ya lleva un
+ * rato trabajando. El cambio en la hora de inicio se traduce en el mismo
+ * cambio en el tiempo acumulado (duracion_segundos): adelantarla 15 minutos
+ * suma esos 15 minutos al cronómetro, como si hubiera estado corriendo
+ * desde entonces. Funciona igual si está en marcha o en pausa.
+ */
+export async function ajustarHoraInicioAction(
+  _prev: TimerActionState,
+  formData: FormData
+): Promise<TimerActionState> {
+  const profile = await requireProfile();
+  const entryId = String(formData.get("entryId") ?? "");
+  const hora = String(formData.get("hora") ?? "");
+
+  if (!HORA_RE.test(hora)) {
+    return { ok: false, error: "Hora no válida." };
+  }
+
+  const { db, entry } = await cargarEntradaActivaPropia(profile.id, entryId);
+  if (!entry) {
+    return { ok: false, error: "No hay un cronómetro activo." };
+  }
+
+  const nuevaHoraInicio = madridHoraAUtc(entry.fecha, hora);
+  const nuevoInstante = new Date(nuevaHoraInicio).getTime();
+
+  if (nuevoInstante > Date.now()) {
+    return { ok: false, error: "La hora de inicio no puede estar en el futuro." };
+  }
+  if (fechaMadridDe(nuevaHoraInicio) !== entry.fecha) {
+    return {
+      ok: false,
+      error: `La hora debe seguir siendo del mismo día (${entry.fecha}).`,
+    };
+  }
+
+  const diferenciaSegundos = Math.round(
+    (new Date(entry.hora_inicio).getTime() - nuevoInstante) / 1000
+  );
+  const nuevaDuracion = Math.max(0, entry.duracion_segundos + diferenciaSegundos);
+
+  if (nuevaDuracion > 24 * 3600) {
+    return {
+      ok: false,
+      error: "Con ese cambio el cronómetro pasaría de 24 horas.",
+    };
+  }
+
+  const { error } = await db
+    .from("time_entries")
+    .update({
+      hora_inicio: nuevaHoraInicio,
+      duracion_segundos: nuevaDuracion,
+    })
+    .eq("id", entry.id);
+
+  if (error) {
+    return { ok: false, error: "No se ha podido actualizar la hora de inicio." };
+  }
 
   revalidatePath("/cronometro");
   return { ok: true };

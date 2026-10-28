@@ -12,6 +12,7 @@ import {
   reanudarCronometroAction,
   finalizarCronometroAction,
   actualizarDescripcionAction,
+  ajustarHoraInicioAction,
   type StartTimerState,
   type TimerActionState,
 } from "./actions";
@@ -27,6 +28,8 @@ export interface ActiveEntryView {
   descripcion: string;
   duracionSegundos: number;
   runningSince: string | null;
+  horaInicio: string;
+  pausadoDesde: string | null;
   proyecto: { id: string; nombre: string; color: string };
 }
 
@@ -146,6 +149,10 @@ function ActiveTimer({ entry }: { entry: ActiveEntryView }) {
     finalizarCronometroAction,
     actionInitialState
   );
+  const [horaInicioState, horaInicioAction] = useActionState(
+    ajustarHoraInicioAction,
+    actionInitialState
+  );
 
   const errorAccion = pausarState.error || reanudarState.error || finalizarState.error;
 
@@ -170,6 +177,36 @@ function ActiveTimer({ entry }: { entry: ActiveEntryView }) {
               <p className="font-display text-3xl font-semibold tabular-nums text-ink">
                 {formatDuracion(segundos)}
               </p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-ink-muted">
+                <form
+                  action={horaInicioAction}
+                  className="flex items-center gap-1.5"
+                >
+                  <input type="hidden" name="entryId" value={entry.id} />
+                  <label htmlFor="hora_inicio">Inicio</label>
+                  <Input
+                    id="hora_inicio"
+                    name="hora"
+                    type="time"
+                    defaultValue={entry.horaInicio}
+                    className="h-7 w-[6.5rem] px-2 text-xs"
+                    onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                  />
+                </form>
+                {!enMarcha && entry.pausadoDesde && (
+                  <span>
+                    En pausa desde{" "}
+                    <span className="font-medium text-ink-secondary">
+                      {entry.pausadoDesde}
+                    </span>
+                  </span>
+                )}
+              </div>
+              {horaInicioState.error && (
+                <p className="mt-1 text-xs text-negative">
+                  {horaInicioState.error}
+                </p>
+              )}
             </div>
           </div>
 

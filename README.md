@@ -2,7 +2,7 @@
 
 Aplicación de registro de horas para VIRTUS COMPANY (16 socios), inspirada en Clockify.
 
-Este README explica lo que ya está construido (**Fases 1 a 8**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas, informes semanales automáticos, calendario, exportaciones, un repaso de seguridad y, desde la Fase 8, los dos modos de la aplicación (Reloj y Calendario) con las fechas clave. Lo único que queda es que el equipo la use de verdad (ver "Antes de usarla con todo el equipo" más abajo).
+Este README explica lo que ya está construido (**Fases 1 a 9**): estructura del proyecto, diseño base, acceso por perfiles, base de datos, cronómetro, registro de horas, gestión de proyectos/tareas/equipo, estadísticas, informes semanales automáticos, calendario, exportaciones, un repaso de seguridad, los dos modos de la aplicación (Reloj y Calendario) con las fechas clave, y la hora de inicio/pausa del cronómetro. Lo único que queda es que el equipo la use de verdad (ver "Antes de usarla con todo el equipo" más abajo).
 
 ## Qué funciona ya de verdad
 
@@ -10,7 +10,7 @@ Este README explica lo que ya está construido (**Fases 1 a 8**): estructura del
 - Conexión a Supabase (solo como base de datos PostgreSQL; no se usan contraseñas).
 - **Entrada por perfiles, sin contraseñas**: una pantalla con el nombre de cada socio; tocas el tuyo y entras. Un asistente de configuración inicial (`/setup`) crea el primer perfil (administrador), y solo funciona una vez.
 - **Dos modos, elegidos desde /inicio** (Fase 8): justo después de elegir tu perfil (y cada vez que vuelves a entrar) ves dos logos grandes. **Reloj** abre la aplicación de toda la vida: cronómetro, mis registros, proyectos, equipo, estadísticas, informes semanales y configuración. **Calendario** abre el calendario, las tareas y las fechas clave. Para cambiar de uno a otro sin volver a `/inicio`, hay un pequeño interruptor arriba del menú lateral con los dos mismos iconos.
-- **Cronómetro**: elegir proyecto, escribir en qué trabajas (obligatorio), iniciar/pausar/reanudar/finalizar; el tiempo se calcula siempre a partir de una hora real guardada en el servidor, nunca inventado en el navegador. Solo puede haber un cronómetro activo por socio.
+- **Cronómetro**: elegir proyecto, escribir en qué trabajas (obligatorio), iniciar/pausar/reanudar/finalizar; el tiempo se calcula siempre a partir de una hora real guardada en el servidor, nunca inventado en el navegador. Solo puede haber un cronómetro activo por socio. Se ve la **hora de inicio** (y, si está en pausa, desde qué hora) y, si se te olvidó pulsar "iniciar" pero ya llevabas un rato trabajando, puedes **corregir la hora de inicio** a mano: el tiempo de más se suma automáticamente al cronómetro (Fase 9).
 - **Registro manual de horas** y **Mis registros**: historial propio por día, con edición (descripción, fecha, duración) y borrado, guardando el historial de cambios.
 - **Proyectos**: crear proyectos (admin), ver el detalle de cada uno, editarlo y asignarle socios.
 - **Tareas**: crear tareas dentro de un proyecto, con responsable y fecha límite opcionales, cambiar su estado, y borrarlas (quien las creó o un administrador).
@@ -37,9 +37,9 @@ Antes de dar la aplicación por terminada se ha hecho un repaso completo:
 - Se ha revisado que cada acción que cambia datos (crear, editar, borrar, cambiar roles...) comprueba en el servidor quién la pide — nunca solo si el botón se ve o no en la pantalla — y que ninguna clave secreta llega nunca al navegador.
 - Se ha añadido `robots.txt` para que los buscadores no indexen la aplicación (es privada, de uso interno).
 
-### Importante: vuelve a ejecutar la migración SQL (Fase 8)
+### Importante: vuelve a ejecutar la migración SQL (Fases 8 y 9)
 
-La Fase 8 añade una tabla nueva (`key_dates`, para las fechas clave). Antes de usarla, entra en el **SQL Editor** de tu proyecto de Supabase, pega de nuevo el contenido completo de [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql) y pulsa "Run". Es seguro repetirlo aunque ya lo hubieras ejecutado antes: todo el archivo está escrito para no duplicar ni borrar nada que ya exista, solo añade lo que falte.
+La Fase 8 añadió una tabla nueva (`key_dates`, para las fechas clave) y la Fase 9 añade una columna nueva (`paused_at`, la hora de pausa del cronómetro). Antes de usarlas, entra en el **SQL Editor** de tu proyecto de Supabase, pega de nuevo el contenido completo de [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql) y pulsa "Run". Es seguro repetirlo aunque ya lo hubieras ejecutado antes: todo el archivo está escrito para no duplicar ni borrar nada que ya exista, solo añade lo que falte.
 
 ### Antes de usarla con todo el equipo
 
@@ -137,3 +137,4 @@ public/
 | 6 | Histórico, calendario y exportaciones | ✅ Hecho |
 | 7 | Pruebas reales, seguridad y publicación | ✅ Hecho (código); la prueba con el equipo la hacéis vosotros |
 | 8 | Dos modos de la aplicación (Reloj / Calendario) y fechas clave | ✅ Hecho (código); recuerda volver a ejecutar la migración SQL |
+| 9 | Hora de inicio editable y hora de pausa en el cronómetro | ✅ Hecho (código); recuerda volver a ejecutar la migración SQL |

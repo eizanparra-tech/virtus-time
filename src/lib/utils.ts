@@ -54,6 +54,16 @@ export function formatFechaHora(isoTimestamp: string): string {
   });
 }
 
+/** "14:05" (24 horas, Europe/Madrid), para mostrar una hora o rellenar un <input type="time">. */
+export function horaInputValue(isoTimestamp: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Madrid",
+    hourCycle: "h23",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(isoTimestamp));
+}
+
 /** "Lun", "Mar"... a partir de una fecha YYYY-MM-DD. */
 export function formatDiaCorto(fechaISO: string): string {
   const texto = new Date(`${fechaISO}T00:00:00`).toLocaleDateString("es-ES", {

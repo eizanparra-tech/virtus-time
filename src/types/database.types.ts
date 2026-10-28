@@ -110,6 +110,7 @@ export interface Database {
           hora_fin: string | null;
           duracion_segundos: number;
           running_since: string | null;
+          paused_at: string | null;
           es_manual: boolean;
           created_at: string;
           updated_at: string;

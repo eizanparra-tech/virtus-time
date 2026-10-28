@@ -2,6 +2,7 @@ import { FolderKanban } from "lucide-react";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
 import { todayMadrid } from "@/lib/dates";
+import { horaInputValue } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card } from "@/components/ui/card";
 import { TimerCard, type ActiveEntryView } from "./timer-card";
@@ -18,7 +19,9 @@ export default async function CronometroPage() {
       .order("nombre"),
     db
       .from("time_entries")
-      .select("id, descripcion, duracion_segundos, running_since, project_id")
+      .select(
+        "id, descripcion, duracion_segundos, running_since, paused_at, hora_inicio, project_id"
+      )
       .eq("user_id", profile.id)
       .is("hora_fin", null)
       .maybeSingle(),
@@ -34,6 +37,10 @@ export default async function CronometroPage() {
         descripcion: activeRow.descripcion,
         duracionSegundos: activeRow.duracion_segundos,
         runningSince: activeRow.running_since,
+        horaInicio: horaInputValue(activeRow.hora_inicio),
+        pausadoDesde: activeRow.paused_at
+          ? horaInputValue(activeRow.paused_at)
+          : null,
         proyecto: proyectoPorId.get(activeRow.project_id) ?? {
           id: activeRow.project_id,
           nombre: "Proyecto",

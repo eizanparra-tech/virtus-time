@@ -161,6 +161,9 @@ create table if not exists public.time_entries (
   -- Marca de tiempo del último "reanudar" mientras el cronómetro está corriendo.
   -- NULL cuando el cronómetro está en pausa o finalizado.
   running_since timestamptz,
+  -- Fase 9: desde cuándo está en pausa (NULL si está en marcha o finalizado),
+  -- solo para mostrarlo en pantalla ("en pausa desde las...").
+  paused_at timestamptz,
   es_manual boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -178,6 +181,12 @@ create index if not exists idx_time_entries_user_fecha on public.time_entries (u
 create unique index if not exists uq_time_entries_un_cronometro_activo
   on public.time_entries (user_id)
   where (hora_fin is null);
+
+-- Fase 9: en una base de datos que ya existía antes de esta fase, la tabla
+-- de arriba no se vuelve a crear (CREATE TABLE IF NOT EXISTS no toca una
+-- tabla que ya existe), así que la columna nueva se añade aquí a mano.
+-- Seguro de repetir: si ya existe, no hace nada.
+alter table public.time_entries add column if not exists paused_at timestamptz;
 
 -- -----------------------------------------------------------------------------
 -- TABLA: time_entry_history

@@ -18,6 +18,58 @@ export function fechaManualComoHoraInicio(fecha: string): string {
   return new Date(`${fecha}T09:00:00`).toISOString();
 }
 
+/** La fecha (YYYY-MM-DD) en Europe/Madrid en la que cae un instante dado. */
+export function fechaMadridDe(isoTimestamp: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: MADRID_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(isoTimestamp));
+}
+
+/**
+ * Convierte una hora "de pared" en Europe/Madrid (la que alguien escribe en
+ * un campo de hora, como "14:05") en el instante UTC real que le
+ * corresponde, teniendo en cuenta el cambio de hora de verano/invierno.
+ *
+ * El servidor (Vercel) no está en la zona horaria de Madrid, así que no
+ * basta con `new Date("${fecha}T${hora}:00")`. Se calcula en dos pasos: se
+ * prueba esa hora como si fuera UTC, se mira qué hora marcaría eso en
+ * Madrid, y se corrige la diferencia con la zona real.
+ */
+export function madridHoraAUtc(fecha: string, horaMinuto: string): string {
+  const [horas, minutos] = horaMinuto.split(":").map(Number);
+  const [y, m, d] = fecha.split("-").map(Number);
+  const intento = Date.UTC(y, m - 1, d, horas, minutos, 0);
+
+  const partes = new Intl.DateTimeFormat("en-US", {
+    timeZone: MADRID_TZ,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(intento));
+
+  const valor = (tipo: string) =>
+    Number(partes.find((p) => p.type === tipo)?.value ?? "0");
+
+  const comoSiFueraUtc = Date.UTC(
+    valor("year"),
+    valor("month") - 1,
+    valor("day"),
+    valor("hour"),
+    valor("minute"),
+    valor("second")
+  );
+
+  const diferencia = intento - comoSiFueraUtc;
+  return new Date(intento + diferencia).toISOString();
+}
+
 /**
  * Lunes y domingo (YYYY-MM-DD) de la semana que contiene la fecha dada.
  * Se trata como una fecha de calendario pura (sin hora ni zona horaria),
