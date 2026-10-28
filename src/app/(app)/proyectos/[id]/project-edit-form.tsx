@@ -50,6 +50,19 @@ export function ProjectEditForm({ project }: { project: Project }) {
         </div>
       </div>
 
+      <div className="flex items-center gap-2">
+        <input
+          id="facturable"
+          name="facturable"
+          type="checkbox"
+          defaultChecked={project.facturable}
+          className="h-4 w-4 rounded border-border text-brand focus-visible:ring-2 focus-visible:ring-info"
+        />
+        <Label htmlFor="facturable" className="mb-0">
+          Facturable
+        </Label>
+      </div>
+
       <div>
         <Label htmlFor="descripcion">Descripción</Label>
         <Textarea

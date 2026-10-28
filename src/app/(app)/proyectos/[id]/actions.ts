@@ -22,6 +22,7 @@ export async function actualizarProyectoAction(
   const descripcion = String(formData.get("descripcion") ?? "").trim();
   const color = String(formData.get("color") ?? "");
   const estado = String(formData.get("estado") ?? "");
+  const facturable = formData.get("facturable") === "on";
 
   if (!nombre) {
     return { ok: false, error: "El nombre no puede estar vacío." };
@@ -39,6 +40,7 @@ export async function actualizarProyectoAction(
       // Si por lo que sea no llega ningún color marcado, se deja el actual.
       ...(color ? { color } : {}),
       estado: estado as (typeof ESTADOS_VALIDOS)[number],
+      facturable,
     })
     .eq("id", projectId);
 

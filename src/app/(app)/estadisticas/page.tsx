@@ -128,7 +128,7 @@ export default async function EstadisticasPage({
   const [{ data: entradas }, { data: proyectos }, { data: socios }, { data: ajustes }] =
     await Promise.all([
       entradasQuery,
-      db.from("projects").select("id, nombre, color"),
+      db.from("projects").select("id, nombre, color, facturable"),
       db.from("profiles").select("id, nombre, apellidos").eq("activo", true),
       esAdmin
         ? db.from("app_settings").select("coste_hora_eur").eq("id", true).maybeSingle()
@@ -157,6 +157,12 @@ export default async function EstadisticasPage({
     totalAnterior > 0
       ? Math.round(((totalActual - totalAnterior) / totalAnterior) * 100)
       : null;
+
+  const segundosFacturables = actuales.reduce(
+    (acc, f) => acc + (proyectoPorId.get(f.project_id)?.facturable !== false ? f.duracion_segundos : 0),
+    0
+  );
+  const segundosNoFacturables = totalActual - segundosFacturables;
 
   const segundosPorProyecto = new Map<string, number>();
   for (const f of actuales) {
@@ -268,9 +274,17 @@ export default async function EstadisticasPage({
             {formatDuracionCorta(totalActual)}
           </p>
           {costeHoraEur !== null && (
-            <p className="text-sm text-ink-secondary">
-              ≈ {formatEuros((totalActual / 3600) * costeHoraEur)} a {formatEuros(costeHoraEur)}/h
-            </p>
+            <>
+              <p className="text-sm text-ink-secondary">
+                ≈ {formatEuros((totalActual / 3600) * costeHoraEur)} a {formatEuros(costeHoraEur)}/h
+              </p>
+              <p className="text-xs text-ink-muted">
+                Facturable: {formatDuracionCorta(segundosFacturables)} (
+                {formatEuros((segundosFacturables / 3600) * costeHoraEur)}) · No
+                facturable: {formatDuracionCorta(segundosNoFacturables)} (
+                {formatEuros((segundosNoFacturables / 3600) * costeHoraEur)})
+              </p>
+            </>
           )}
           <div className="flex items-center gap-1.5 text-sm text-ink-secondary">
             {cambioPct === null ? (

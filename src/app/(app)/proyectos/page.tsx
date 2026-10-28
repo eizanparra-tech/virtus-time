@@ -38,7 +38,7 @@ export default async function ProyectosPage() {
   const [{ data: proyectos }, { data: miembros }] = await Promise.all([
     db
       .from("projects")
-      .select("id, nombre, descripcion, color, estado, created_at")
+      .select("id, nombre, descripcion, color, estado, facturable, created_at")
       .order("created_at", { ascending: true }),
     db.from("project_members").select("project_id"),
   ]);
@@ -116,6 +116,7 @@ export default async function ProyectosPage() {
                       {(miembrosPorProyecto.get(proyecto.id) ?? 0) === 1
                         ? ""
                         : "s"}
+                      {!proyecto.facturable && <span>· No facturable</span>}
                     </div>
                   </div>
                 </div>

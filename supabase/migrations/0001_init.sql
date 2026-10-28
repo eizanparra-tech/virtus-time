@@ -107,6 +107,7 @@ create table if not exists public.projects (
   descripcion text,
   color text not null default '#1e3a8a',
   estado public.project_status not null default 'activo',
+  facturable boolean not null default true,
   fecha_inicio date not null default current_date,
   created_by uuid references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
@@ -114,6 +115,13 @@ create table if not exists public.projects (
 );
 
 create index if not exists idx_projects_estado on public.projects (estado);
+
+-- Fase 11: en una base de datos que ya existía antes de esta fase, la tabla
+-- de arriba no se vuelve a crear (CREATE TABLE IF NOT EXISTS no toca una
+-- tabla que ya existe), así que la columna nueva se añade aquí a mano.
+-- Seguro de repetir: si ya existe, no hace nada. Por defecto todo proyecto
+-- es facturable; cada administrador desmarca a mano los que no lo sean.
+alter table public.projects add column if not exists facturable boolean not null default true;
 
 -- -----------------------------------------------------------------------------
 -- TABLA: project_members

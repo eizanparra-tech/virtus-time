@@ -57,6 +57,7 @@ export interface Database {
           descripcion: string | null;
           color: string;
           estado: ProjectStatus;
+          facturable: boolean;
           fecha_inicio: string;
           created_by: string | null;
           created_at: string;

@@ -103,9 +103,12 @@ export default async function ProyectoDetallePage({
         title={project.nombre}
         description={project.descripcion ?? undefined}
         action={
-          <Badge tone={ESTADO_TONE[project.estado]}>
-            {ESTADO_LABEL[project.estado]}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {!project.facturable && <Badge tone="neutral">No facturable</Badge>}
+            <Badge tone={ESTADO_TONE[project.estado]}>
+              {ESTADO_LABEL[project.estado]}
+            </Badge>
+          </div>
         }
       />
 
@@ -192,7 +195,8 @@ export default async function ProyectoDetallePage({
               {formatEuros((segundosTotales / 3600) * costeHoraEur)}
             </p>
             <p className="text-sm text-ink-secondary">
-              Coste estimado a {formatEuros(costeHoraEur)}/hora
+              Coste estimado a {formatEuros(costeHoraEur)}/hora ·{" "}
+              {project.facturable ? "Facturable" : "No facturable"}
             </p>
           </div>
         </Card>
