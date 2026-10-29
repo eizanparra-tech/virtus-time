@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  type BarRectangleItem,
 } from "recharts";
 import { formatDuracionCorta } from "@/lib/utils";
 
@@ -53,7 +54,17 @@ export interface BarraItem {
 }
 
 /** Barras horizontales: horas por proyecto, o por socio. */
-export function BarrasHoras({ data }: { data: BarraItem[] }) {
+export function BarrasHoras({
+  data,
+  onBarClick,
+  seleccionado,
+}: {
+  data: BarraItem[];
+  /** Si se indica, cada barra se puede pinchar y pasa a mostrar su id aquí. */
+  onBarClick?: (id: string) => void;
+  /** Id de la barra actualmente seleccionada (atenúa las demás). */
+  seleccionado?: string | null;
+}) {
   if (data.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-ink-muted">
@@ -91,9 +102,28 @@ export function BarrasHoras({ data }: { data: BarraItem[] }) {
           tickLine={false}
         />
         <Tooltip content={<TooltipHoras />} cursor={{ fill: "var(--color-surface-sunken)" }} />
-        <Bar dataKey="segundos" radius={[0, 4, 4, 0]} maxBarSize={22}>
+        <Bar
+          dataKey="segundos"
+          radius={[0, 4, 4, 0]}
+          maxBarSize={22}
+          onClick={
+            onBarClick
+              ? (item: BarRectangleItem) => {
+                  const id = (item.payload as BarraItem | undefined)?.id;
+                  if (id) onBarClick(id);
+                }
+              : undefined
+          }
+          style={onBarClick ? { cursor: "pointer" } : undefined}
+        >
           {data.map((item) => (
-            <Cell key={item.id} fill={item.color} />
+            <Cell
+              key={item.id}
+              fill={item.color}
+              fillOpacity={
+                !seleccionado || seleccionado === item.id ? 1 : 0.35
+              }
+            />
           ))}
         </Bar>
       </BarChart>

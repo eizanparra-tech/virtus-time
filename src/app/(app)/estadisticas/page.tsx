@@ -14,6 +14,7 @@ import {
 import { PageHeader } from "@/components/layout/page-header";
 import { PROJECT_COLORS } from "@/lib/project-colors";
 import { BarrasHoras, EvolucionHoras, type BarraItem, type PuntoSerie } from "./charts";
+import { HorasPorSocio } from "./socio-desglose";
 
 type Rango = "semana" | "mes" | "todo";
 type Vista = "mio" | "empresa";
@@ -185,12 +186,23 @@ export default async function EstadisticasPage({
 
   let datosPorSocio: BarraItem[] = [];
   let sociosConActividad = 0;
+  const desglosePorSocio: Record<string, BarraItem[]> = {};
   if (vista === "empresa") {
     const segundosPorSocio = new Map<string, number>();
+    const segundosPorSocioProyecto = new Map<string, Map<string, number>>();
     for (const f of actuales) {
       segundosPorSocio.set(
         f.user_id,
         (segundosPorSocio.get(f.user_id) ?? 0) + f.duracion_segundos
+      );
+
+      if (!segundosPorSocioProyecto.has(f.user_id)) {
+        segundosPorSocioProyecto.set(f.user_id, new Map());
+      }
+      const porProyectoDeSocio = segundosPorSocioProyecto.get(f.user_id)!;
+      porProyectoDeSocio.set(
+        f.project_id,
+        (porProyectoDeSocio.get(f.project_id) ?? 0) + f.duracion_segundos
       );
     }
     sociosConActividad = segundosPorSocio.size;
@@ -206,6 +218,21 @@ export default async function EstadisticasPage({
       })
       .sort((a, b) => b.segundos - a.segundos)
       .slice(0, 12);
+
+    // Desglose por proyecto de cada socio, para expandir al pinchar en su barra.
+    for (const [userId, porProyectoDeSocio] of segundosPorSocioProyecto) {
+      desglosePorSocio[userId] = Array.from(porProyectoDeSocio.entries())
+        .map(([projectId, segundos]) => {
+          const proyecto = proyectoPorId.get(projectId);
+          return {
+            id: projectId,
+            label: proyecto?.nombre ?? "Proyecto eliminado",
+            segundos,
+            color: proyecto?.color ?? "#8893a3",
+          };
+        })
+        .sort((a, b) => b.segundos - a.segundos);
+    }
   }
 
   const serie = construirSerie(ventana, actuales);
@@ -357,12 +384,14 @@ export default async function EstadisticasPage({
             <div>
               <CardTitle>Horas por socio</CardTitle>
               <CardDescription>
-                Los 12 socios con más horas registradas en el periodo.
+                Los 12 socios con más horas registradas en el periodo. Pincha
+                en una barra para ver en qué proyectos ha repartido ese
+                tiempo.
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
-            <BarrasHoras data={datosPorSocio} />
+            <HorasPorSocio data={datosPorSocio} desglose={desglosePorSocio} />
           </CardContent>
         </Card>
       )}
