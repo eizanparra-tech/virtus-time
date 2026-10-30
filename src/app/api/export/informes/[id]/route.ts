@@ -2,6 +2,7 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
 import { formatDuracionCorta, formatFecha, formatEuros } from "@/lib/utils";
+import { todayMadrid } from "@/lib/dates";
 
 // =============================================================================
 // Exporta a PDF un informe semanal ya generado (/informes/[id]), con los
@@ -97,6 +98,7 @@ export async function GET(
   const porSocio = [...(resumen.por_socio ?? [])].sort(
     (a, b) => b.segundos - a.segundos
   );
+  const esSemanaEnCurso = informe.semana_fin > todayMadrid();
 
   const doc = await PDFDocument.create();
   const fontRegular = await doc.embedFont(StandardFonts.Helvetica);
@@ -146,8 +148,14 @@ export async function GET(
   linea("Informe semanal", { tamano: 20, font: fontBold, espacio: 26 });
   linea(
     `Semana del ${formatFecha(informe.semana_inicio)} al ${formatFecha(informe.semana_fin)}`,
-    { tamano: 12, color: GRIS, espacio: 22 }
+    { tamano: 12, color: GRIS, espacio: esSemanaEnCurso ? 18 : 22 }
   );
+  if (esSemanaEnCurso) {
+    linea(
+      "Esta semana todavía no ha terminado: son los datos hasta hoy, no la semana completa.",
+      { tamano: 10, font: fontItalic, color: GRIS, espacio: 20 }
+    );
+  }
 
   linea(`Total registrado: ${formatDuracionCorta(resumen.total_segundos)}`, {
     tamano: 13,

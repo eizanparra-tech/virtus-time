@@ -2,23 +2,31 @@
 
 import { useActionState } from "react";
 import { SubmitButton } from "@/components/ui/submit-button";
-import {
-  generarInformeSemanaPasadaAction,
-  type InformeActionState,
-} from "./actions";
+import type { ButtonProps } from "@/components/ui/button";
+import { type InformeActionState } from "./actions";
 
 const initialState: InformeActionState = { ok: false };
 
-export function GenerarInformeButton() {
-  const [state, formAction] = useActionState(
-    generarInformeSemanaPasadaAction,
-    initialState
-  );
+export function GenerarInformeButton({
+  action,
+  label,
+  pendingLabel = "Generando…",
+  variant,
+}: {
+  action: (
+    prev: InformeActionState,
+    formData: FormData
+  ) => Promise<InformeActionState>;
+  label: string;
+  pendingLabel?: string;
+  variant?: ButtonProps["variant"];
+}) {
+  const [state, formAction] = useActionState(action, initialState);
 
   return (
     <form action={formAction} className="flex items-center gap-3">
-      <SubmitButton pendingText="Generando…">
-        Generar informe de la semana pasada
+      <SubmitButton variant={variant} pendingText={pendingLabel}>
+        {label}
       </SubmitButton>
       {state.error && (
         <span className="text-sm text-negative">{state.error}</span>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Sparkles, Info, Download } from "lucide-react";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
+import { todayMadrid } from "@/lib/dates";
 import { formatDuracionCorta, formatFecha, formatEuros } from "@/lib/utils";
 import {
   Card,
@@ -91,6 +92,8 @@ export default async function InformeDetallePage({
     (a, b) => b.segundos - a.segundos
   );
 
+  const esSemanaEnCurso = informe.semana_fin > todayMadrid();
+
   return (
     <div className="space-y-6">
       <Link
@@ -108,6 +111,7 @@ export default async function InformeDetallePage({
             <Badge tone={ESTADO_TONE[informe.status]}>
               {ESTADO_LABEL[informe.status]}
             </Badge>
+            {esSemanaEnCurso && <Badge tone="info">Semana en curso</Badge>}
             {informe.status === "completado" && (
               <a
                 href={`/api/export/informes/${informe.id}`}
@@ -152,6 +156,12 @@ export default async function InformeDetallePage({
               socios registraron algo, en {resumen.total_proyectos_con_actividad}{" "}
               proyecto{resumen.total_proyectos_con_actividad === 1 ? "" : "s"}.
             </p>
+            {esSemanaEnCurso && (
+              <p className="text-sm text-info">
+                Esta semana todavía no ha terminado: son los datos hasta hoy,
+                no la semana completa.
+              </p>
+            )}
             {resumen.segundos_facturables !== undefined && (
               <p className="text-xs text-ink-muted">
                 Facturable: {formatDuracionCorta(resumen.segundos_facturables)}

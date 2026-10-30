@@ -2,11 +2,16 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { requireProfile } from "@/lib/session";
 import { createDbClient } from "@/lib/supabase/db";
+import { todayMadrid } from "@/lib/dates";
 import { formatDuracionCorta, formatFecha } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { GenerarInformeButton } from "./generar-informe-button";
+import {
+  generarInformeSemanaActualAction,
+  generarInformeSemanaPasadaAction,
+} from "./actions";
 import type { ReportStatus } from "@/types/database.types";
 
 const ESTADO_LABEL: Record<ReportStatus, string> = {
@@ -31,13 +36,28 @@ export default async function InformesPage() {
     .order("semana_inicio", { ascending: false });
 
   const lista = informes ?? [];
+  const hoy = todayMadrid();
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Informes semanales"
-        description="Cada lunes de madrugada se genera el informe de la semana que acaba de terminar: horas reales por proyecto y por socio, más un resumen escrito a partir de esos mismos números."
-        action={profile.rol === "admin" ? <GenerarInformeButton /> : undefined}
+        description="Cada lunes de madrugada se genera automáticamente el informe de la semana que acaba de terminar: horas reales por proyecto y por socio, más un resumen escrito a partir de esos mismos números. Un administrador también puede sacar el de la semana en curso cualquier otro día, con los datos que haya hasta el momento."
+        action={
+          profile.rol === "admin" ? (
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+              <GenerarInformeButton
+                action={generarInformeSemanaActualAction}
+                label="Informe de esta semana (en curso)"
+                variant="secondary"
+              />
+              <GenerarInformeButton
+                action={generarInformeSemanaPasadaAction}
+                label="Informe de la semana pasada"
+              />
+            </div>
+          ) : undefined
+        }
       />
 
       {lista.length === 0 ? (
@@ -45,7 +65,7 @@ export default async function InformesPage() {
           <p className="text-sm text-ink-secondary">
             Todavía no hay ningún informe generado.
             {profile.rol === "admin"
-              ? " Puedes generar el de la semana pasada con el botón de arriba, o esperar al próximo lunes."
+              ? " Puedes generar el de esta semana o el de la semana pasada con los botones de arriba, o esperar al próximo lunes."
               : " El primero aparecerá tras el próximo lunes."}
           </p>
         </Card>
@@ -69,6 +89,9 @@ export default async function InformesPage() {
                       <Badge tone={ESTADO_TONE[informe.status]}>
                         {ESTADO_LABEL[informe.status]}
                       </Badge>
+                      {informe.semana_fin > hoy && (
+                        <Badge tone="info">Semana en curso</Badge>
+                      )}
                     </div>
                     {informe.status === "completado" && (
                       <p className="mt-1 text-sm text-ink-secondary">

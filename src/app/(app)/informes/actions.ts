@@ -30,6 +30,33 @@ export async function generarInformeSemanaPasadaAction(
   return { ok: true };
 }
 
+/**
+ * Botón manual: genera (o actualiza) el informe de la semana en curso, con
+ * los datos que haya hasta hoy. No hace falta esperar al domingo/lunes: se
+ * puede sacar cualquier día de la semana, y el lunes de madrugada la tarea
+ * automática lo recalcula igual con la semana ya completa.
+ */
+export async function generarInformeSemanaActualAction(
+  _prev: InformeActionState,
+  _formData: FormData
+): Promise<InformeActionState> {
+  await requireAdmin();
+
+  const hoy = todayMadrid();
+  const estaSemana = semanaDe(hoy);
+
+  const resultado = await generarInformeSemanal(estaSemana.inicio);
+  if (!resultado.ok) {
+    return { ok: false, error: resultado.error ?? "No se ha podido generar el informe." };
+  }
+
+  revalidatePath("/informes");
+  if (resultado.reportId) {
+    revalidatePath(`/informes/${resultado.reportId}`);
+  }
+  return { ok: true };
+}
+
 /** Vuelve a calcular un informe ya existente (por si algo cambió después). */
 export async function regenerarInformeAction(
   _prev: InformeActionState,
